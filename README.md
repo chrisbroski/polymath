@@ -6,7 +6,7 @@ Defintion for a computer language designed for clear and simple scientific code.
 Pointless Introduction
 ----------------------
 
-Leonardo DiVinci was the original polymath and the standard against which all renaissance men are held to. He was an engineer and artist. If that could be expressed mathematically, I would call it "Leonardo's Formula"
+Leonardo DiVinci was the original polymath and the standard against which all renaissance men are held to. He was a brilliant engineer and artist. If that could be expressed mathematically, I would call it "Leonardo's Formula"
 
     Art + Science = Awesome!
 
