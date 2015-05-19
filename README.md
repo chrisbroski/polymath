@@ -32,4 +32,4 @@ Precision is important in floating point math.
 Basics
 ------
 
-Polymath is a dynamically typed, garbage-collected, interpreted lanugage influenced by the most powerful abilities of Python and JavaScript.
+Polymath is a dynamically typed, garbage-collected, interpreted lanugage influenced by the most powerful abilities of Python and JavaScript. Examples of implementation will use JavaScript.
