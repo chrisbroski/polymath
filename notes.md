@@ -95,42 +95,40 @@ if 3 > x > 1
 
 (Copied some from Erlang)
 
-+ 	unary + 	number
-- 	unary - 	number
-+ 	  	number
-- 	  	number
-* 	  	number
-/      floating point division 	number
-^      Exponent         number
+\+ 	unary + 	number 
+\- 	unary - 	number 
+\+ 	  	number 
+- 	  	number 
+\* 	  	number 
+/      floating point division 	number 
+^      Exponent         number 
 
-//     integer division 	integer
-rem    integer remainder of X/Y 	integer
+//     integer division 	integer 
+rem    integer remainder of X/Y 	integer 
 
-bnot   unary bitwise not 	integer
-band   bitwise and 	integer
-bor    bitwise or 	integer
-bxor   arithmetic bitwise xor 	integer
-<< 	   arithmetic bitshift left 	integer
->> 	   bitshift right 	integer
->>>    Zero-fill right shift
+bnot   unary bitwise not 	integer 
+band   bitwise and 	integer 
+bor    bitwise or 	integer 
+bxor   arithmetic bitwise xor 	integer 
+<< 	   arithmetic bitshift left 	integer 
+>> 	   bitshift right 	integer 
+>>>    Zero-fill right shift 
 
-·      Dot product
-cos
-sin
-tan
-
+·      Dot product 
+cos 
+sin 
+tan 
 
 ###Loops
 
 Not sure yet. Probably go through an array, plus array creation syntax.
 
-for i, n in [1, 2, 3]
-    total: total + n
+    for i, n in [1, 2, 3]
+        total: total + n
 
-x: 5
-while x > 0
-    x: x + 1
-
+    x: 5
+    while x > 0
+        x: x + 1
 
 ###Array
 
