@@ -93,13 +93,25 @@ Can combine < and >
 
 ###Math
 
-    + 	  unary + 
+    + 	  unary +
     - 	  unary -
-    + 	  addition 
+    + 	  addition
     - 	  subtraction
     * 	  multiplication
-    /     division 
+    /     division
     ^     Exponent
+    cos(x)
+    acos(x)
+    sin(x)
+    asin(x)
+    tan(x)
+    atan(x)
+    atan2(x, y)
+    abs(x)
+    rand(seed)
+    ln(x)
+    ceil(x)
+    floor(x)
 
 ####Integer Math
 
@@ -109,14 +121,7 @@ Can combine < and >
     bxor   arithmetic bitwise xor
     << 	   arithmetic bitshift left
     >> 	   bitshift right
-    >>>    Zero-fill right shift 
-
-####Trig
-
-    cos 
-    sin 
-    tan 
-    
+    >>>    Zero-fill right shift
 
 ###Loops
 
