@@ -56,8 +56,6 @@ And can assign like so
 
 global.var: 10
 
-####Variable and constant symbols
-
 #####Cannot begin with
 1234567890
 
@@ -71,7 +69,7 @@ Basic Greek (U+0391 - U+03A1, U+03A3 - U+03A9, U+03B1 - U+03C9)
 Latin extended additional (U+1E00 - U+1EFF)
 
 Maybe
-#$@
+$@#
 
 ###Data Types
 string, float, int, money, array, object, function, equation
