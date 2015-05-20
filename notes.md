@@ -93,23 +93,26 @@ Can combine <>
 
 (Copied some from Erlang)
 
-    \+ 	unary \+ 	number 
-    \- 	unary \- 	number 
-    \+ 	  	number 
-    - 	  	number 
-    \* 	  	number 
-    /      floating point division 	number 
-    ^      Exponent         number 
+    + 	  unary + 	number 
+    - 	  unary - 	number 
+    + 	  number 
+    - 	  number 
+    * 	  number 
+    /     floating point division 	number 
+    ^     Exponent         number 
 
-    bnot   unary bitwise not 	integer 
-    band   bitwise and 	integer 
-    bor    bitwise or 	integer 
-    bxor   arithmetic bitwise xor 	integer 
-    << 	   arithmetic bitshift left 	integer 
-    >> 	   bitshift right 	integer 
+####Integer Math
+
+    bnot   unary bitwise not
+    band   bitwise and
+    bor    bitwise or
+    bxor   arithmetic bitwise xor
+    << 	   arithmetic bitshift left
+    >> 	   bitshift right
     >>>    Zero-fill right shift 
 
-    ·      Dot product 
+####Trig
+
     cos 
     sin 
     tan 
