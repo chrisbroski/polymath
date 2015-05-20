@@ -7,22 +7,22 @@ Math is at its core, especially algebra (as taught in school.) A programmer shou
 
 It borrows good ideas from the history of languages. Notably Python (block denoting with indentation) and JavaScript (JSON.) It also tries to avoid repeating mistakes (multiple uses for the = and + operators for instance.)
 
-Assignment            :
-Equality              =
-Type coerced equality ~
-    if 2 strings, trim and lowercase, if 2 numbers, specific the precision of the                         
-    comparison like 1 ~5 1.0000001 returns true
-Return                = (at start of line in algebraic function)
-Multiline Comment     \` (start and end)
-std or console out    out
-define function       f()
+    Assignment            :
+    Equality              =
+    Type coerced equality ~
+        if 2 strings, trim and lowercase, if 2 numbers, specific the precision of the                         
+        comparison like 1 ~5 1.0000001 returns true
+    Return                = (at start of line in algebraic function)
+    Multiline Comment     ` (start and end)
+    std or console out    out
+    define function       f()
 
-String concatenation: none! Use mustache '{{0}}{{1}}'.format(['a', 'b'])
-Mustache default "string".format(data)
-Math default complex numbers, integration, differentiation
-JSON support (including functions)
-url(path) returns a cookieless http GET response body
-jQuery DOM for web
+String concatenation: none! Use mustache '{{0}}{{1}}'.format(['a', 'b']) 
+Mustache default "string".format(data) 
+Math default complex numbers, integration, differentiation 
+JSON support (including functions) 
+url(path) returns a cookieless http GET response body 
+jQuery DOM for web 
 
 ###Function define
 
