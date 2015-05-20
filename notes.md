@@ -76,48 +76,43 @@ string, float, int, money, array, object, function, equation
 
 ###Conditionals
 
-if x = 3
-    out('not 3')
+    if x = 3
+        out('not 3')
 
-if 'a' = input & accept
-    process(input)
+    if 'a' = input & accept
+        process(input)
 
 Uses 'truthy' evaluation same as JavaScript
 
 Can combine <>
 
-if 3 > x > 1
-    out('twoish')
-
-
+    if 3 > x > 1
+        out('twoish')
 
 ###Math
 
 (Copied some from Erlang)
 
-\+ 	unary + 	number 
-\- 	unary - 	number 
-\+ 	  	number 
-- 	  	number 
-\* 	  	number 
-/      floating point division 	number 
-^      Exponent         number 
+    \+ 	unary \+ 	number 
+    \- 	unary \- 	number 
+    \+ 	  	number 
+    - 	  	number 
+    \* 	  	number 
+    /      floating point division 	number 
+    ^      Exponent         number 
 
-//     integer division 	integer 
-rem    integer remainder of X/Y 	integer 
+    bnot   unary bitwise not 	integer 
+    band   bitwise and 	integer 
+    bor    bitwise or 	integer 
+    bxor   arithmetic bitwise xor 	integer 
+    << 	   arithmetic bitshift left 	integer 
+    >> 	   bitshift right 	integer 
+    >>>    Zero-fill right shift 
 
-bnot   unary bitwise not 	integer 
-band   bitwise and 	integer 
-bor    bitwise or 	integer 
-bxor   arithmetic bitwise xor 	integer 
-<< 	   arithmetic bitshift left 	integer 
->> 	   bitshift right 	integer 
->>>    Zero-fill right shift 
-
-·      Dot product 
-cos 
-sin 
-tan 
+    ·      Dot product 
+    cos 
+    sin 
+    tan 
 
 ###Loops
 
@@ -134,11 +129,11 @@ Not sure yet. Probably go through an array, plus array creation syntax.
 
 Creation syntax like so
 
-arrayA: [1...8] `Default is incrementing by 1`
-arrayB: [1, 3...15] `If two starting numbers, increment is the difference between them`
-arrayC: [1, 2, 4...512] `If three starting numbers, increment is by multiply of the divisors between them`
-ArrayD: array1[20, 30...100][1000]array3[123...456] `Build larger arrays with auto-concatenating of adjacent arrays`
-arrayE: array1[]array2 `use empty arrays to glue variable or constant arrays together`
+arrayA: [1...8] \`Default is incrementing by 1\`
+arrayB: [1, 3...15] \`If two starting numbers, increment is the difference between them\`
+arrayC: [1, 2, 4...512] \`If three starting numbers, increment is by multiply of the divisors between them\`
+ArrayD: array1[20, 30...100][1000]array3[123...456] \`Build larger arrays with auto-concatenating of adjacent arrays\`
+arrayE: array1[]array2 \`use empty arrays to glue variable or constant arrays together\`
 
 Array indices are 1-based. This is a major difference from traditional languages but if done right, should prevent many fence post errors. All indices are also meant to be inclusive.
 
