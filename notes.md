@@ -17,12 +17,12 @@ It borrows good ideas from the history of languages. Notably Python (block denot
     std or console out    out
     define function       f()
 
-String concatenation: none! Use mustache '{{0}}{{1}}'.format(['a', 'b']) 
-Mustache default "string".format(data) 
-Math default complex numbers, integration, differentiation 
-JSON support (including functions) 
-url(path) returns a cookieless http GET response body 
-jQuery DOM for web 
+String concatenation: none\! Use mustache '{{0}}{{1}}'.format(['a', 'b'])  
+Mustache default "string".format(data)  
+Math default complex numbers, integration, differentiation  
+JSON support (including functions)  
+url(path) returns a cookieless http GET response body  
+jQuery DOM for web
 
 ###Function define
 
