@@ -45,6 +45,7 @@ All variables and constants have an optional 'desc' property that can be set onc
 "Plain" variables and arrays are actually objects like so
 
     x: 1
+
 is actually
 
     x: {default: 1, desc: ''}
@@ -74,7 +75,7 @@ Latin extended additional (U+1E00 - U+1EFF)
 $@#
 
 ###Data Types
-string, float, int, money, array, object, function, equation
+string, float, int, money, array, object, function, polynomial
 
 ###Conditionals
 
@@ -108,7 +109,6 @@ Can combine < and >
     atan(x)
     atan2(x, y)
     abs(x)
-    rand(seed)
     ln(x)
     ceil(x)
     floor(x)
@@ -122,6 +122,12 @@ Can combine < and >
     << 	   arithmetic bitshift left
     >> 	   bitshift right
     >>>    Zero-fill right shift
+
+####Random
+
+    rand(seed)                returns random float between 0 and 1
+    randNormal(mean, stdev)   returns normal distribution random from the mean
+    array.rand(seed)          Technically an array method but worth mentioning
 
 ###Loops
 
@@ -154,10 +160,14 @@ I had to use a semicolon somewhere! This is a programming language after all. Th
 
 'find' is like indexOf but makes more intuitive sense. You can even use it inside a slicer
 
-    arrayA[2 ; find(13)]
+    arrayA[2; find(13)]
 
 It will assume that is is supposed to find in its parent array.
 
+Return a random item from an array
+
+    arrayA.rand(seed)
+    > 4
 
 ###Misc
 A carriage return is a line ending except for string, comment, and algebraic types which are always multi-line.
