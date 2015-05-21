@@ -40,12 +40,12 @@ Force strings, money and floats to Integers:
 
 If there is one money value, then calculations should return money rounded to a fixed decimal of the most fractional digits of all money terms. For example:
 
-    $1.0 * 1.06
-    > $1.1
+    $10.0 * 0.06
+    > $0.6
 
 Force anything to money by putting a $ in front of it.
 
-The rounding method should be able to be changed somehow.
+The default rounding method should be able to be changed somehow. (round-to-even, round up, away-from zero, etc.)
 
 Functions
 ---------
