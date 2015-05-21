@@ -39,8 +39,11 @@ Functions can only have one parameter, but since you can use JSON, you can pack 
         arg.x.desc: 'A real important number'
         arg.a.desc: 'A list of numbers. Will use the second.'
         arg.more.stuff.desc: 'Optional.'
+        arg.thing: 10
         
         = x + a[2]
+
+The *arg* object can be developed inside the function by adding descriptions and assigning defulat values. Any value with a default assigned is considered optional.
 
 ###Public Functions
 
