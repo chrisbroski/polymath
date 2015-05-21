@@ -136,6 +136,8 @@ Not sure yet. Probably go through an array, plus array creation syntax.
     for i, n in [1, 2, 3]
         total: total + n
 
+Iterators in for loops (1 and n in this example) are private to the block, but nothing else is.
+
     x: 5
     while x > 0
         x: x + 1
