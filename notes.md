@@ -10,7 +10,7 @@ It borrows good ideas from the history of languages. Notably Python (block denot
     Assignment            :
     Equality              =
     Type coerced equality ~
-        if 2 strings, trim and lowercase, if 2 numbers, specific the precision of the                         
+        if 2 strings, trim and lowercase, if 2 numbers, specific the precision of the
         comparison like 1 ~5 1.0000001 returns true
     Return                = (at start of line in algebraic function)
     Multiline Comment     ` (start and end)
@@ -33,11 +33,20 @@ Uses hanging indents like Python for blocks. To write 1-liners do
 
     FunctionName2: f(x) = 2x
 
-Functions can only have one parameter, but since you can use JSON, that complexity
+Functions can only have one parameter, but since you can use JSON, you can pack as much complexity as you like into it. Curly brackets are optional in function declarations and invocations.
+
+    FunctionName3: f(x: 5, a: [1, 2, 3], more: {stuff: 'a'})
+        arg.x.desc: 'A real important number'
+        arg.a.desc: 'A list of numbers. Will use the second.'
+        arg.more.stuff.desc: 'Optional.'
+        
+        = x + a[2]
 
 ###Public Functions
 
-A function that is built to be accessed outside of its module must be explicitly declared (somehow.)
+A function that is built to be accessed outside of its module must be explicitly declared. (Somehow. I like Erlang's export syntax.)
+
+    export(FunctionName1, FunctionName3)
 
 ###Identifiers
 Constants start with a capital letter, variables with a small (cannot start with a number)
