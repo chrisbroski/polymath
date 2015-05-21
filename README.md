@@ -18,11 +18,34 @@ It has been wisely said "Programs must be written for people to read, and only i
 Three Number Types
 ------------------
 
-It should handle scientific (floating-point,) discrete (integer,) and monetary calculations differently. In a calculation, ff all numbers are integers, it uses discrete math. If there is at least one float, it uses scientific (converting integers to max precision) unless there is at least one money. A single money type will cause the output to have a fixed number after the decimal equal to the largest number of digits after the decimal in all terms (minimum 2.)
+It should handle scientific (floating-point,) discrete (integer,) and monetary calculations differently. In a calculation, if all numbers are integers, it uses discrete math. If there is at least one float, it uses scientific (converting integers to max precision) unless there is at least one money. A single money type will cause the output to have a fixed number after the decimal equal to the largest number of digits after the decimal in all terms (minimum 2.)
 
 ###Scientific
 
+These are double-precision (64-bit) floats. Calculations with all floats (or floats and integers) are rounded to the least precision of all floating-point values.
 
+Force strings, money, integers to scientific notation:
+
+    float('1')
+
+###Integers
+
+Calculations with all integers will only use integer math and only return integer answers. 
+
+Force strings, money and floats to Integers:
+
+    int(1.7)
+
+###Money
+
+If there is one money value, then calculations should return money rounded to a fixed decimal of the most fractional digits of all money terms. For example:
+
+    $1.0 * 1.06
+    > $1.1
+
+Force anything to money by putting a $ in front of it.
+
+The rounding method should be able to be changed somehow.
 
 Functions
 ---------
