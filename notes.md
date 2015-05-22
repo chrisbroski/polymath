@@ -183,6 +183,14 @@ Return a random item from an array
     arrayA.rand(seed)
     > 4
 
+Array equality. ~ comparison will ignore order
+
+    arrayA = arrayB
+    > false
+
+    [8, 7, 6, 5, 3, 4, 1, 2] ~ arrayA
+    > true
+
 ###Misc
 A carriage return is a line ending except for string, comment, and algebraic types which are always multi-line.
 
