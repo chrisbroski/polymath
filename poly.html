@@ -9,15 +9,20 @@ html {padding: 10px 10px 200px; font-family: droid sans, sans-serif; }
 body {margin: 0 auto; max-width: 580px; }
 body > article > *:first-child {margin-top: 0; }
 article p {line-height: 1.4em; font-size: 17px; }
+
+textarea {width: 500px; }
 </style>
 
 <body>
 <article id="calculator">
 <h1>Polynomial Calculator</h1>
-
-<p><textarea id="eq">2 * x + 3 * x - 3 * 4 / 6</textarea>
-<p><button onclick="calc()">Combine</button>
-<p><button onclick="test()">Explode</button>
+<p>Readable
+<p><textarea id="eq">2x + 3x - 3*4 / 6</textarea>
+<p>Strict
+<p><textarea id="strict"></textarea>
+<p><button onclick="simplify()">Calc</button>
+<!--<p><button onclick="test()">Explode</button>-->
+<p>Answer
 <p><pre id="answer"></pre>
 
 </article>
@@ -27,303 +32,209 @@ function isNumber(n) {
     return !isNaN(parseFloat(n)) && isFinite(n);
 }
 
-function sameWords(words, newEq) {
-    console.log('sameWords');
-    console.log(words, newEq);
+function arraysEqual(a, b) {
     var ii, len;
-    len = newEq.length;
+    if (a === b) {
+        return true;
+    }
+    if (a == null || b == null) {
+        return false;
+    }
+    if (a.length != b.length) {
+        return false;
+    }
+
+    a.sort();
+    b.sort();
+
+    len = a.length;
     for (ii = 0; ii < len; ii = ii + 1) {
-        if (newEq[ii].word === words) {
+        if (a[ii] !== b[ii]) {
+            return false;
+        }
+    }
+    return true;
+}
+
+function sameIds(words, aEq) {
+    var ii, len;
+    len = aEq.length;
+    for (ii = 0; ii < len; ii = ii + 1) {
+        if (arraysEqual(aEq[ii].idTop, words.idTop) && arraysEqual(aEq[ii].idBot, words.idBot)) {
             return ii;
         }
     }
     return -1;
 }
 
-function explodeCoefficient(eq) {
-    //This doesn't work (yet)
-    return eq.replace(/(\d.?)(\w.?)/g, function () {
-        var args = arguments;
-        console.log(args);
-        return args[1] + ' * ' + args[2];
-    });
+function readableToStrict(eq) {
+    // Pad spaces around * and / if needed
+    eq = eq.replace(/([\*\/])/g, ' $1 ');
+    
+    // Expand adjacent coefficient/identifier to explicit multiplication
+    eq = eq.replace(/(\d)([a-zA-Z])/g, '$1 * $2');
+    
+    // make all terms + and transport negativity to a coefficient
+    //console.log(eq.match(/^(?![a-zA-Z0-9])+\-(?=[a-zA-Z0-9])/g));
+    //eq = eq.replace(/^(?![a-zA-Z0-9])+\-(?=[a-zA-Z0-9])/g, ' + -');
+    //eq = eq.replace(/[a-zA-Z0-9\.](\-)[a-zA-Z0-9\.]/g, ' + -');
+    eq = eq.replace(/( \- )(?=\d)/g, ' + -');
+    eq = eq.replace(/( \- \-)/g, ' + ');
+    
+    // Collapse extra spaces
+    eq = eq.replace(/\s+/g, " ");
+    
+    return eq;
 }
 
 function test() {
     document.getElementById('answer').innerHTML = '';
-    document.getElementById('answer').innerHTML = explodeCoefficient(document.getElementById('eq').value);
+    document.getElementById('answer').innerHTML = readableToStrict(document.getElementById('eq').value);
 }
 
-function formatPolynomial(eq) {
+function formatIds(top, bot) {
+    var output = '';
+    if (top.length) {
+        output = output + top.join(' * ');
+    }
+    if (bot.length) {
+        if (top.length) {
+            output = output + ' / ';
+        }
+        output = output + top.join(' / ');
+    }
+    return output;
+}
+
+function formatPoly(eq) {
     var ii, len, output = '';
     len = eq.length;
     for (ii = 0; ii < len; ii = ii + 1) {
-        if (eq[ii].num) {
+        if (eq[ii].val) {
             if (ii > 0) {
-                output = output + ' ' + eq[ii].sign + ' ';
+                if (eq[ii].val > 0) {
+                    output = output + ' + ';
+                } else {
+                    // make this - and adjust coefficient
+                    output = output + ' - ';
+                    eq[ii].val = eq[ii].val * -1;
+                }
             }
-            if (eq[ii].num === 1 && eq[ii].word) {
-                output = output + eq[ii].word;
+            if (eq[ii].val === 1 && eq[ii].idTop) {
+                output = output + formatIds(eq[ii].idTop, eq[ii].idBot);
             }
-            if (!eq[ii].word) {
-                output = output + eq[ii].num;
+            if (!eq[ii].idTop && !eq.idBot) {
+                output = output + eq[ii].val;
             }
-            if (eq[ii].num !== 1 && eq[ii].word) {
-                output = output + eq[ii].num + eq[ii].word;
+            if (eq[ii].val !== 1 && (eq[ii].idTop || eq[ii].idBot)) {
+                output = output + eq[ii].val + formatIds(eq[ii].idTop, eq[ii].idBot);
             }
         }
     }
     return output;
 }
 
-function addNum(poly1, poly2) {
-    var num1, num2, num, sign = '+';
-    num1 = poly1.num;
-    num2 = poly2.num;
-
-    if (poly1.sign === '-') {
-        num1 = num1 * -1;
-    }
-    if (poly2.sign === '-') {
-        num2 = num2 * -1;
-    }
-
-    num = num1 + num2;
-    if (num < 0) {
-        sign = '-';
-    }
-    //console.log('num', num, sign);
-    return {'num': Math.abs(num), 'sign': sign};
-}
-
-function calc() {
-    var eq = document.getElementById('eq').value,
-        answer = document.getElementById('answer'),
-        reEq = /[^0-9a-zA-Z\s\+\-\/\*]/g,
-        aEq = [],
-        aNewEq = [],
-        ii,
-        parseStart = 0,
-        factorSign = '+',
-        len,
-        aFac,
-        facNum,
-        facWord,
-        jj,
-        jLen,
-        aFacNumTop = [],
-        facNumTop = 1,
-        aFacNumBot = [],
-        facNumBot = 1,
-        aFacWordTop = [],
-        facWordTop = 1,
-        aFacWordBot = [],
-        facWordBot = 1,
-        fact = '',
-        facNum,
-        facWord,
-        solved = [],
-        factorNum = 0,
-        factorWord = '',
-        iSame,
-        aAddNum;
-
-    // format for splitting
-    
-    // to start, numbers, +, -, *, / only (no parens for now)
-    // Hopefully parens will just be multiple iterations of this process
-
-    // reject bad data
-    if (eq.search(reEq) > -1) {
-        answer.innerHTML = 'letters, numbers, +, -, *, / only';
-        //console.log(reEq.exec(eq));
-        return;
-    }
-
-    // separate into factors
-    //aEq = eq.split(/ [^\+\-] /);
-    len = eq.length;
-    for (ii = 0; ii < len; ii = ii + 1) {
-        //console.log(eq.slice(ii, ii + 3));
-        if (eq.slice(ii, ii + 3) === ' + ') {
-            aEq.push({'factor': eq.slice(parseStart, ii), 'sign': factorSign, 'num': 0, 'word': ''});
-            factorSign = '+';
-            ii = ii + 3;
-            parseStart = ii;
-        }
-        if (eq.slice(ii, ii + 3) === ' - ') {
-            aEq.push({'factor': eq.slice(parseStart, ii), 'sign': factorSign, 'num': 0, 'word': ''});
-            factorSign = '-';
-            ii = ii + 3;
-            parseStart = ii;
-        }
-        if (ii === len - 1) {
-            aEq.push({'factor': eq.slice(parseStart), 'sign': factorSign, 'num': 0, 'word': ''});
-        }
-    }
-
-    console.log(aEq);
-    
-    // do math on each factor
-    len = aEq.length;
-    //console.log(aEq.length);
-    for (ii = 0; ii < len; ii = ii + 1) {
-        //console.log(ii);
-        // In the future we should handle numbers left-adjacent to a word as multiply
-        // We could convert it to standard right here
-        
-        //aEq[ii].factor = aEq[ii].factor.replace(//);
-        /*aFac = aEq[ii].split(' ');
-        jLen = aFace.length;
-        for (jj = 0; jj < jLen; jj = jj + 1) {
-            if (isNumber(aFac[jj])) {
-                aFacNumTop
-            } else {
-                
-            }
-        }*/
-        aFacNumTop.length = 0;
-        aFacNumBot.length = 0;
-        aFacWordTop.length = 0;
-        aFacWordBot.length = 0;
-        
-        parseStart = 0;
-        factorSign = '*';
-        jLen = aEq[ii].factor.length;
-        for (jj = 0; jj < jLen; jj = jj + 1) {
-            fact = aEq[ii].factor;
-            //console.log(aEq[ii].slice(jj, jj + 3));
-            //console.log(jj);
-            if (fact.slice(jj, jj + 3) === ' * ') {
-                if (isNumber(fact.slice(parseStart, jj))) {
-                    if (factorSign === '*') {
-                        aFacNumTop.push(fact.slice(parseStart, jj));
-                    } else {
-                        aFacNumBot.push(fact.slice(parseStart, jj));
-                    }
-                } else {
-                    if (factorSign === '*') {
-                        aFacWordTop.push(fact.slice(parseStart, jj));
-                    } else {
-                        aFacWordBot.push(fact.slice(parseStart, jj));
-                    }
-                }
-                factorSign = '*';
-                jj = jj + 3;
-                parseStart = jj;
-            }
-            if (fact.slice(jj, jj + 3) === ' / ') {
-                if (isNumber(fact.slice(parseStart, jj))) {
-                    if (factorSign === '*') {
-                        aFacNumTop.push(fact.slice(parseStart, jj));
-                    } else {
-                        aFacNumBot.push(fact.slice(parseStart, jj));
-                    }
-                } else {
-                    if (factorSign === '*') {
-                        aFacWordTop.push(fact.slice(parseStart, jj));
-                    } else {
-                        aFacWordBot.push(fact.slice(parseStart, jj));
-                    }
-                }
-                factorSign = '/';
-                jj = jj + 3;
-                parseStart = jj;
-            }
-            if (jj === jLen - 1) {
-                if (isNumber(fact.slice(parseStart))) {
-                    if (factorSign === '*') {
-                        aFacNumTop.push(fact.slice(parseStart));
-                    } else {
-                        aFacNumBot.push(fact.slice(parseStart));
-                    }
-                } else {
-                    if (factorSign === '*') {
-                        aFacWordTop.push(fact.slice(parseStart));
-                    } else {
-                        aFacWordBot.push(fact.slice(parseStart));
-                    }
-                }
-            }
-        }
-        console.log(aFacNumTop, aFacNumBot, aFacWordTop, aFacWordBot);
-
-        // combine each factor
-        // top, combine all numbers
-        //console.log(ii);
-        
-        jLen = aFacNumTop.length;
-        facNumTop = 1;
-        for (jj = 0; jj < jLen; jj = jj + 1) {
-            facNumTop = facNumTop * aFacNumTop[jj];
-        }
-        
-        jLen = aFacNumBot.length;
-        facNumBot = 1;
-        for (jj = 0; jj < jLen; jj = jj + 1) {
-            facNumBot = facNumBot * aFacNumBot[jj];
-        }
-        facNum = facNumTop / facNumBot;
-        console.log('facnum', facNumTop, facNumBot, facNum);
-        
-        //facWordTop = [facNum].concat(aFacWordTop).join(' * ');
-        //facWordBot = aFacWordBot.join(' / ');
-        /*
-        jLen = aFacWordBot.length;
-        facNumBot = 1;
-        for (jj = 0; jj < jLen; jj = jj + 1) {
-            facNumBot = facNumBot * aFacNumBot[jj];
-        }
-        facNum = facNumTop / facNumBot;*/
-        
-        //console.log(facWordTop + facWordBot);
-        aEq[ii].num = facNum;
-        aEq[ii].word = aFacWordTop.join(' * ') + aFacWordBot.join(' / ');
-    }
-    console.log('aEq final');
-    console.log(aEq);
-
-    // combine factors into final equation
+function combineTerms(aEq) {
+    var ii, len, aNewEq = [];
     len = aEq.length;
     if (aEq.length > 0) {
-        //solved = aEq[0];
-        // combine all factors with identical words (order should not matter)
-        //if (ii === 0) {
-            if (aEq[0].sign === '-') {
-                aNewEq.push({'num': aEq[0].num * -1, 'sign': '+', 'word': aEq[0].word});
-            } else {
-                aNewEq.push({'num': aEq[0].num, 'sign': '+', 'word': aEq[0].word});
-            }
-        //}
-        console.log('aNewEq first');
-        console.log(aNewEq)
-        
+        aNewEq.push({'val': aEq[0].val, 'idTop': aEq[0].idTop, 'idBot': aEq[0].idBot});
         if (aEq.length > 1) {
             for (ii = 1; ii < len; ii = ii + 1) {
                 // if it has the same words as previous - ALL previous
-                iSame = sameWords(aEq[ii].word, aNewEq);
-                console.log('iSame', iSame);
+                iSame = sameIds(aEq[ii], aNewEq);
                 if (iSame > -1) {
-                    aAddNum = addNum(aNewEq[iSame], aEq[ii]);
-                    aNewEq[iSame].num = aAddNum.num;
-                    aNewEq[iSame].sign = aAddNum.sign;
+                    aNewEq[iSame].val = aNewEq[iSame].val + aEq[ii].val;
                 } else {
-                    aNewEq.push(aEq[ii]);
+                    aNewEq.push({'val': aEq[ii].val, 'idTop': aEq[ii].idTop, 'idBot': aEq[ii].idBot});
                 }
             }
         }
-        console.log(aNewEq);
     }
-    answer.innerHTML = formatPolynomial(aNewEq);
+    return aNewEq;
+}
 
-    //eq = eq.replace(/\(/g, ' ( ');
-    //eq = eq.replace(/\)/g, ' ) ');
+function consolidateTerms(aEq) {
+    var ii, len, jj, jLen, aNewEq = [];
+    len = aEq.length;
+
+    for (ii = 0; ii < len; ii = ii + 1) {
+        aNewEq.push({'val': 1, 'idTop': [], 'idBot': []});
+
+        // Combine values
+        jLen = aEq[ii].valTop.length;
+        for (jj = 0; jj < jLen; jj = jj + 1) {
+            aNewEq[ii].val = aNewEq[ii].val * aEq[ii].valTop[jj];
+        }
+
+        jLen = aEq[ii].valBot.length;
+        for (jj = 0; jj < jLen; jj = jj + 1) {
+            aNewEq[ii].val = aNewEq[ii].val / aEq[ii].valBot[jj];
+        }
+        
+        // combine ids
+        // I'll do this later, for now just copy them over
+        aNewEq[ii].idTop = aEq[ii].idTop;
+        aNewEq[ii].idBot = aEq[ii].idBot;
+    }
+    return aNewEq;
+}
+
+function strictToPoly(eq) {
+    var aTerms, ii, len, aEq = [], aFactors, jj, jLen, fact;
+    // separate into terms
+    aTerms = eq.split(' + ');
+    len = aTerms.length;
+    for (ii = 0; ii < len; ii = ii + 1) {
+        aEq.push({'valTop': [], 'valBot': [], 'idTop': [], 'idBot': []});
+        // process factors
+        aFactors =  aTerms[ii].match(/(\/\s\S+)|(\* \S+)|(^\S+)/g);
+        jLen = aFactors.length;
+        for (jj = 0; jj < jLen; jj = jj + 1) {
+            fact = aFactors[jj];
+            if (fact.slice(0, 1) === '/') {
+                fact = fact.slice(2);
+                if (isNumber(fact)) {
+                    aEq[ii].valBot.push(fact);
+                } else {
+                    aEq[ii].idBot.push(fact);
+                }
+            } else {
+                if (fact.slice(0, 1) === '*') {
+                    fact = aFactors[jj].slice(2);
+                }
+                if (isNumber(fact)) {
+                    aEq[ii].valTop.push(fact);
+                } else {
+                    aEq[ii].idTop.push(fact);
+                }
+            }
+        }
+    }
+
+    return aEq;
+}
+
+function simplify() {
+    var eq,
+        reEq = /[^0-9a-zA-Z\s\+\-\/\*]/g;
+
+    eq = document.getElementById('eq').value;
     
-    //aEq = /[0-1a-zA-Z]\+\-\*\/\s]/.test(eq);
-    //aEq = /[^0-9a-zA-Z\s\+]/g.test(eq);
-
-    //console.log(aEq);
-    //eval(eq);
+    // reject bad data
+    if (eq.search(reEq) > -1) {
+        answer.innerHTML = 'letters, numbers, +, -, *, / only';
+        return;
+    }
+    
+    // coerce to strict
+    eq = readableToStrict(eq);
+    document.getElementById('strict').value = eq;
+    
+    // calculate
+    // format readable
+    aEq = combineTerms(consolidateTerms(strictToPoly(eq)));
+    answer.innerHTML = formatPoly(aEq);
 }
 
 /*
@@ -374,4 +285,5 @@ SalesTrajectory.i({x: [100, 110]})
     > 2130 `number`
 
 */
+window.onload = simplify;
 </script>
