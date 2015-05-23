@@ -10,7 +10,7 @@ body {margin: 0 auto; max-width: 580px; }
 body > article > *:first-child {margin-top: 0; }
 article p {line-height: 1.4em; font-size: 17px; }
 
-textarea {width: 500px; }
+textarea {width: 500px; height: 60px; padding: 10px; }
 </style>
 
 <body>
@@ -33,14 +33,16 @@ function isNumber(n) {
 }
 
 function arraysEqual(a, b) {
+    'use strict';
     var ii, len;
+
     if (a === b) {
         return true;
     }
-    if (a == null || b == null) {
+    if (a === null || b === null) {
         return false;
     }
-    if (a.length != b.length) {
+    if (a.length !== b.length) {
         return false;
     }
 
@@ -69,7 +71,7 @@ function sameIds(words, aEq) {
 
 function readableToStrict(eq) {
     // Pad spaces around * and / if needed
-    eq = eq.replace(/([\*\/])/g, ' $1 ');
+    eq = eq.replace(/([\*\/\^])/g, ' $1 ');
     
     // Expand adjacent coefficient/identifier to explicit multiplication
     eq = eq.replace(/(\d)([a-zA-Z])/g, '$1 * $2');
@@ -88,8 +90,11 @@ function readableToStrict(eq) {
 }
 
 function test() {
-    document.getElementById('answer').innerHTML = '';
-    document.getElementById('answer').innerHTML = readableToStrict(document.getElementById('eq').value);
+    var eq, answer;
+    eq = document.getElementById('eq');
+    answer = document.getElementById('answer');
+    answer.innerHTML = '';
+    answer.innerHTML = readableToStrict(eq.value);
 }
 
 function formatIds(top, bot) {
@@ -101,7 +106,7 @@ function formatIds(top, bot) {
         if (top.length) {
             output = output + ' / ';
         }
-        output = output + top.join(' / ');
+        output = output + bot.join(' / ');
     }
     return output;
 }
@@ -134,28 +139,50 @@ function formatPoly(eq) {
     return output;
 }
 
+function cancelIds(term) {
+    var ii, len, newTop = [], iBot;
+    if (term.idTop.length === 0 || term.idBot.length === 0) {
+        return [term.idTop, term.idBot];
+    }
+    len = term.idTop.length;
+    for (ii = 0; ii < len; ii = ii + 1) {
+        iBot = term.idBot.indexOf(term.idTop[ii]);
+        if (iBot === -1) {
+            newTop.push(term.idTop[ii]);
+        } else {
+            term.idBot.splice(iBot, 1);
+        }
+    }
+    return [newTop, term.idBot];
+}
+
 function combineTerms(aEq) {
-    var ii, len, aNewEq = [];
+    var ii, len, aNewEq = [];//, newUnits;
     len = aEq.length;
-    if (aEq.length > 0) {
-        aNewEq.push({'val': aEq[0].val, 'idTop': aEq[0].idTop, 'idBot': aEq[0].idBot});
-        if (aEq.length > 1) {
-            for (ii = 1; ii < len; ii = ii + 1) {
-                // if it has the same words as previous - ALL previous
-                iSame = sameIds(aEq[ii], aNewEq);
-                if (iSame > -1) {
-                    aNewEq[iSame].val = aNewEq[iSame].val + aEq[ii].val;
-                } else {
-                    aNewEq.push({'val': aEq[ii].val, 'idTop': aEq[ii].idTop, 'idBot': aEq[ii].idBot});
-                }
+    
+    if (aEq.length === 0) {
+        return [];
+    }
+
+    aNewEq.push({'val': aEq[0].val, 'idTop': aEq[0].idTop, 'idBot': aEq[0].idBot});
+
+    if (aEq.length > 1) {
+        for (ii = 1; ii < len; ii = ii + 1) {
+            // if it has the same words as previous - ALL previous
+            iSame = sameIds(aEq[ii], aNewEq);
+            if (iSame > -1) {
+                aNewEq[iSame].val = aNewEq[iSame].val + aEq[ii].val;
+            } else {
+                aNewEq.push({'val': aEq[ii].val, 'idTop': aEq[ii].idTop, 'idBot': aEq[ii].idBot});
             }
         }
     }
+
     return aNewEq;
 }
 
 function consolidateTerms(aEq) {
-    var ii, len, jj, jLen, aNewEq = [];
+    var ii, len, jj, jLen, aNewEq = [], newUnits;
     len = aEq.length;
 
     for (ii = 0; ii < len; ii = ii + 1) {
@@ -172,11 +199,12 @@ function consolidateTerms(aEq) {
             aNewEq[ii].val = aNewEq[ii].val / aEq[ii].valBot[jj];
         }
         
-        // combine ids
-        // I'll do this later, for now just copy them over
-        aNewEq[ii].idTop = aEq[ii].idTop;
-        aNewEq[ii].idBot = aEq[ii].idBot;
+        // cancel ids that occur in top and bot arrays
+        newUnits = cancelIds(aEq[ii]);
+        aNewEq[ii].idTop = newUnits[0];
+        aNewEq[ii].idBot = newUnits[1];
     }
+
     return aNewEq;
 }
 
