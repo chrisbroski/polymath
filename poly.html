@@ -98,7 +98,14 @@ function test() {
 }
 
 function formatIds(top, bot) {
-    var output = '';
+    var output = '', ii, len;
+    
+    // if there are multiple ids, user ^ notation
+    len = top.length;
+    for (ii = 0; ii < len; ii = ii + 1) {
+        
+    }
+    
     if (top.length) {
         output = output + top.join(' * ');
     }
@@ -115,24 +122,27 @@ function formatPoly(eq) {
     var ii, len, output = '';
     len = eq.length;
     for (ii = 0; ii < len; ii = ii + 1) {
-        if (eq[ii].val) {
+        if (eq[ii].coefficient) {
+            // glue terms together with + and -
             if (ii > 0) {
-                if (eq[ii].val > 0) {
+                if (eq[ii].coefficient > 0) {
                     output = output + ' + ';
                 } else {
                     // make this - and adjust coefficient
                     output = output + ' - ';
-                    eq[ii].val = eq[ii].val * -1;
+                    eq[ii].coefficient = eq[ii].coefficient * -1;
                 }
             }
-            if (eq[ii].val === 1 && eq[ii].idTop) {
+            
+            // Format and append ids
+            if (eq[ii].coefficient === 1 && eq[ii].idTop) {
                 output = output + formatIds(eq[ii].idTop, eq[ii].idBot);
             }
             if (!eq[ii].idTop && !eq.idBot) {
-                output = output + eq[ii].val;
+                output = output + eq[ii].coefficient;
             }
-            if (eq[ii].val !== 1 && (eq[ii].idTop || eq[ii].idBot)) {
-                output = output + eq[ii].val + formatIds(eq[ii].idTop, eq[ii].idBot);
+            if (eq[ii].coefficient !== 1 && (eq[ii].idTop || eq[ii].idBot)) {
+                output = output + eq[ii].coefficient + formatIds(eq[ii].idTop, eq[ii].idBot);
             }
         }
     }
@@ -164,17 +174,17 @@ function combineTerms(aEq) {
         return [];
     }
 
-    aNewEq.push({'val': aEq[0].val, 'idTop': aEq[0].idTop, 'idBot': aEq[0].idBot});
-
-    if (aEq.length > 1) {
-        for (ii = 1; ii < len; ii = ii + 1) {
-            // if it has the same words as previous - ALL previous
-            iSame = sameIds(aEq[ii], aNewEq);
-            if (iSame > -1) {
-                aNewEq[iSame].val = aNewEq[iSame].val + aEq[ii].val;
-            } else {
-                aNewEq.push({'val': aEq[ii].val, 'idTop': aEq[ii].idTop, 'idBot': aEq[ii].idBot});
-            }
+    for (ii = 1; ii < len; ii = ii + 1) {
+        // if it has the same words as previous - ALL previous
+        iSame = sameIds(aEq[ii], aNewEq);
+        if (iSame > -1 && ii !== 0) {
+            aNewEq[iSame].coefficient = aNewEq[iSame].coefficient + aEq[ii].coefficient;
+        } else {
+            aNewEq.push({
+                'coefficient': aEq[ii].coefficient,
+                'idTop': aEq[ii].idTop.sort(),
+                'idBot': aEq[ii].idBot.sort()
+            });
         }
     }
 
@@ -186,17 +196,17 @@ function consolidateTerms(aEq) {
     len = aEq.length;
 
     for (ii = 0; ii < len; ii = ii + 1) {
-        aNewEq.push({'val': 1, 'idTop': [], 'idBot': []});
+        aNewEq.push({'coefficient': 1, 'idTop': [], 'idBot': []});
 
         // Combine values
-        jLen = aEq[ii].valTop.length;
+        jLen = aEq[ii].ceTop.length;
         for (jj = 0; jj < jLen; jj = jj + 1) {
-            aNewEq[ii].val = aNewEq[ii].val * aEq[ii].valTop[jj];
+            aNewEq[ii].coefficient = aNewEq[ii].coefficient * aEq[ii].ceTop[jj];
         }
 
-        jLen = aEq[ii].valBot.length;
+        jLen = aEq[ii].ceBot.length;
         for (jj = 0; jj < jLen; jj = jj + 1) {
-            aNewEq[ii].val = aNewEq[ii].val / aEq[ii].valBot[jj];
+            aNewEq[ii].coefficient = aNewEq[ii].coefficient / aEq[ii].ceBot[jj];
         }
         
         // cancel ids that occur in top and bot arrays
@@ -214,7 +224,7 @@ function strictToPoly(eq) {
     aTerms = eq.split(' + ');
     len = aTerms.length;
     for (ii = 0; ii < len; ii = ii + 1) {
-        aEq.push({'valTop': [], 'valBot': [], 'idTop': [], 'idBot': []});
+        aEq.push({'ceTop': [], 'ceBot': [], 'idTop': [], 'idBot': []});
         // process factors
         aFactors =  aTerms[ii].match(/(\/\s\S+)|(\* \S+)|(^\S+)/g);
         jLen = aFactors.length;
@@ -223,7 +233,7 @@ function strictToPoly(eq) {
             if (fact.slice(0, 1) === '/') {
                 fact = fact.slice(2);
                 if (isNumber(fact)) {
-                    aEq[ii].valBot.push(fact);
+                    aEq[ii].ceBot.push(fact);
                 } else {
                     aEq[ii].idBot.push(fact);
                 }
@@ -232,7 +242,7 @@ function strictToPoly(eq) {
                     fact = aFactors[jj].slice(2);
                 }
                 if (isNumber(fact)) {
-                    aEq[ii].valTop.push(fact);
+                    aEq[ii].ceTop.push(fact);
                 } else {
                     aEq[ii].idTop.push(fact);
                 }
@@ -248,13 +258,13 @@ function simplify() {
         reEq = /[^0-9a-zA-Z\s\+\-\/\*]/g;
 
     eq = document.getElementById('eq').value;
-    
+
     // reject bad data
     if (eq.search(reEq) > -1) {
         answer.innerHTML = 'letters, numbers, +, -, *, / only';
         return;
     }
-    
+
     // coerce to strict
     eq = readableToStrict(eq);
     document.getElementById('strict').value = eq;
