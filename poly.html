@@ -11,6 +11,7 @@ body > article > *:first-child {margin-top: 0; }
 article p {line-height: 1.4em; font-size: 17px; }
 
 textarea {width: 500px; height: 60px; padding: 10px; }
+#answer, #answer sup, #multiline, #multiline sup {font-family: monospace; font-size: 14px; }
 </style>
 
 <body>
@@ -24,12 +25,35 @@ textarea {width: 500px; height: 60px; padding: 10px; }
 <!--<p><button onclick="test()">Explode</button>-->
 <p>Answer
 <p><pre id="answer"></pre>
+<p>Multiline
+<p><pre id="multiline"></pre>
 
 </article>
 
 <script>
 function isNumber(n) {
     return !isNaN(parseFloat(n)) && isFinite(n);
+}
+
+function pad(symb, amount, str) {
+    var ii, len;
+    str = str || '';
+
+    len = amount - str.replace(/<[^<>]+>/g, '').length;
+    
+    if (len < 1) {
+        return str;
+    }
+    
+    for (ii = 0; ii < len; ii = ii + 1) {
+        // center str in padding
+        if (ii % 2) {
+            str = str + symb;
+        } else {
+            str = symb + str;
+        }
+    }
+    return str;
 }
 
 function arraysEqual(a, b) {
@@ -97,33 +121,94 @@ function test() {
     answer.innerHTML = readableToStrict(eq.value);
 }
 
+function longestLineLength(line1, line2) {
+    line1 = line1.replace(/<[^<>]+>/g, '')
+    line2 = line2.replace(/<[^<>]+>/g, '');
+
+    return (line1.length > line2.length) ? line1.length : line2.length;
+}
+
 function formatIds(top, bot) {
-    var output = '', ii, len;
+    var output = '', ii, len, oTopExp = {}, oBotExp = {}, exp, top1 = [], bot1 = [], topFirst = true;
     
     // if there are multiple ids, user ^ notation
     len = top.length;
     for (ii = 0; ii < len; ii = ii + 1) {
-        
+        // consolidate multiple ids with ^
+        if (oTopExp[top[ii]]) {
+            oTopExp[top[ii]] = oTopExp[top[ii]] + 1;
+        } else {
+            oTopExp[top[ii]] = 1;
+        }
+    }
+    
+    // remove any ids with a count > 1
+    for (ii = 0; ii < len; ii = ii + 1) {
+        if (oTopExp[top[ii]] === 1) {
+            top1.push(top[ii]);
+        }
+    }
+    
+    for (exp in oTopExp) {
+        if (oTopExp.hasOwnProperty(exp)) {
+            if (oTopExp[exp] > 1) {
+                if (!topFirst) {
+                    output = output + ' * ';
+                } else {
+                    topFirst = false;
+                }
+                output = output + exp + '<sup>' + oTopExp[exp] + '</sup>';
+            }
+        }
     }
     
     if (top.length) {
-        output = output + top.join(' * ');
-    }
-    if (bot.length) {
-        if (top.length) {
-            output = output + ' / ';
+        if (!topFirst && top1.length) {
+            output = output + ' * ';
+        } else {
+            topFirst = false;
         }
-        output = output + bot.join(' / ');
+        output = output + top1.join(' * ');
     }
+    
+    len = bot.length;
+    for (ii = 0; ii < len; ii = ii + 1) {
+        // consolidate multiple ids with ^
+        if (oBotExp[bot[ii]]) {
+            oBotExp[bot[ii]] = oBotExp[bot[ii]] + 1;
+        } else {
+            oBotExp[bot[ii]] = 1;
+        }
+    }
+
+    // remove any ids with a count > 1
+    for (ii = 0; ii < len; ii = ii + 1) {
+        if (oBotExp[bot[ii]] === 1) {
+            bot1.push(bot[ii]);
+        }
+    }
+    
+    for (exp in oBotExp) {
+        if (oBotExp.hasOwnProperty(exp)) {
+            if (oBotExp[exp] > 1) {
+                output = output + ' / ' + exp + '<sup>' + oBotExp[exp] + '</sup>';
+            }
+        }
+    }
+    if (bot1.length) {
+        output = output + ' / ' + bot1.join(' / ');
+    }
+    //console.log(output);
     return output;
 }
 
 function formatPoly(eq) {
-    var ii, len, output = '';
+    //console.log(eq);
+    var ii, len, output = '', terms, last = '';
     len = eq.length;
     for (ii = 0; ii < len; ii = ii + 1) {
-        if (eq[ii].coefficient) {
-            // glue terms together with + and -
+        // glue terms together with + and -
+        if (eq[ii].idTop.length || eq[ii].idBot.length) {
             if (ii > 0) {
                 if (eq[ii].coefficient > 0) {
                     output = output + ' + ';
@@ -133,20 +218,132 @@ function formatPoly(eq) {
                     eq[ii].coefficient = eq[ii].coefficient * -1;
                 }
             }
-            
-            // Format and append ids
-            if (eq[ii].coefficient === 1 && eq[ii].idTop) {
-                output = output + formatIds(eq[ii].idTop, eq[ii].idBot);
+            terms = formatIds(eq[ii].idTop, eq[ii].idBot);
+        
+        // Format and append ids
+            if (eq[ii].coefficient === 1 && eq[ii].idTop.length) {
+                //console.log('1 and topid');
+                output = output + terms;
             }
-            if (!eq[ii].idTop && !eq.idBot) {
-                output = output + eq[ii].coefficient;
+            if (eq[ii].coefficient !== 1 && (eq[ii].idTop.length || eq[ii].idBot.length)) {
+                //console.log('!1 and top or bot id');
+                output = output + eq[ii].coefficient + terms;
             }
-            if (eq[ii].coefficient !== 1 && (eq[ii].idTop || eq[ii].idBot)) {
-                output = output + eq[ii].coefficient + formatIds(eq[ii].idTop, eq[ii].idBot);
+        } else {
+            if (ii > 0) {
+                if (eq[ii].coefficient > 0) {
+                    last = last + ' + ' + eq[ii].coefficient;
+                } else {
+                    // make this - and adjust coefficient
+                    last = last + ' - ' + (eq[ii].coefficient * -1);
+                }
             }
         }
     }
-    return output;
+    return output + last;
+}
+
+function formatId(ids) {
+    var ii, len, out = '', oExp = {}, exp, first = true, newIds = [];
+    
+    // if there are multiple ids, user ^ notation
+    len = ids.length;
+    for (ii = 0; ii < len; ii = ii + 1) {
+        // consolidate multiple ids with ^
+        if (oExp[ids[ii]]) {
+            oExp[ids[ii]] = oExp[ids[ii]] + 1;
+        } else {
+            oExp[ids[ii]] = 1;
+        }
+    }
+    
+    // remove any ids with a count > 1
+    for (ii = 0; ii < len; ii = ii + 1) {
+        if (oExp[ids[ii]] === 1) {
+            newIds.push(ids[ii]);
+        }
+    }
+    
+    for (exp in oExp) {
+        if (oExp.hasOwnProperty(exp)) {
+            if (oExp[exp] > 1) {
+                if (!first) {
+                    out = out + ' * ';
+                } else {
+                    first = false;
+                }
+                out = out + exp + '<sup>' + oExp[exp] + '</sup>';
+            }
+        }
+    }
+
+    if (ids.length) {
+        if (!first && newIds.length) {
+            out = out + ' * ';
+        }
+        out = out + newIds.join(' * ');
+    }
+    //console.log(out);
+    return out;
+}
+
+function formatPolyMulti(eq) {
+    //console.log(eq);
+    var ii, len, output = ['', '', ''], terms = [], glueSymb = '', glueLen = 0, co = '', last = '';
+    len = eq.length;
+    for (ii = 0; ii < len; ii = ii + 1) {
+        //terms = formatIdsMulti(eq[ii].idTop, eq[ii].idBot);
+        if (eq[ii].idTop.length || eq[ii].idBot.length) {
+            terms[0] = formatId(eq[ii].idTop);
+            terms[2] = formatId(eq[ii].idBot);
+
+            // glue terms together with + and -
+            if (ii > 0) {
+                if (eq[ii].coefficient > 0) {
+                        glueSymb = ' + ';
+                } else {
+                    // make this - and adjust coefficient
+                    eq[ii].coefficient = eq[ii].coefficient * -1;
+                    glueSymb = ' - ';
+                }
+                glueLen = 3;
+            }
+
+            if (eq[ii].coefficient === 1 && eq[ii].idTop.length) {
+                co = '';
+            } else {
+                co = eq[ii].coefficient.toString(10);
+            }
+
+            // format  numbers and ids
+            if (!eq[ii].idBot.length) {
+                // if top only
+                console.log(glueLen, co.length, longestLineLength(terms[0], ''));
+                output[0] = output[0] + pad(' ', glueLen + co.length + longestLineLength(terms[0], ''));
+                output[1] = output[1] + glueSymb + co + terms[0];
+                output[2] = output[2] + pad(' ', glueLen + co.length + longestLineLength(terms[0], ''));
+            } else {
+                // all else
+                console.log(terms[2]);
+                terms[1] = pad('-', longestLineLength(co + terms[0], terms[2]));
+                output[0] = output[0] + pad(' ', glueLen) + pad(' ', terms[1].length, co + terms[0]);
+                output[1] = output[1] + glueSymb + terms[1];
+                console.log(terms[1].length, terms[2]);
+                output[2] = output[2] + pad(' ', glueLen) + pad(' ', terms[1].length, terms[2]);
+            }
+        } else {
+            if (ii > 0) {
+                if (eq[ii].coefficient > 0) {
+                    last = last + ' + ' + eq[ii].coefficient;
+                } else {
+                    // make this - and adjust coefficient
+                    last = last + ' - ' + (eq[ii].coefficient * -1);
+                }
+            }
+        }
+    }
+    output[1] = output[1] + last;
+    return output.join("\n");
 }
 
 function cancelIds(term) {
@@ -167,7 +364,7 @@ function cancelIds(term) {
 }
 
 function combineTerms(aEq) {
-    var ii, len, aNewEq = [];//, newUnits;
+    var ii, len, aNewEq = [aEq[0]];//, newUnits;
     len = aEq.length;
     
     if (aEq.length === 0) {
@@ -272,7 +469,9 @@ function simplify() {
     // calculate
     // format readable
     aEq = combineTerms(consolidateTerms(strictToPoly(eq)));
+    //console.log(aEq);
     answer.innerHTML = formatPoly(aEq);
+    multiline.innerHTML = formatPolyMulti(aEq);
 }
 
 /*
