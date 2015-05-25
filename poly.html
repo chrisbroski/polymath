@@ -204,38 +204,39 @@ function formatIds(top, bot) {
 
 function formatPoly(eq) {
     //console.log(eq);
-    var ii, len, output = '', terms, last = '';
+    var ii, len, output = '', terms, last = '', co = 1;
     len = eq.length;
     for (ii = 0; ii < len; ii = ii + 1) {
         // glue terms together with + and -
+        co = eq[ii].coefficient;
         if (eq[ii].idTop.length || eq[ii].idBot.length) {
             if (ii > 0) {
-                if (eq[ii].coefficient > 0) {
+                if (co > 0) {
                     output = output + ' + ';
                 } else {
                     // make this - and adjust coefficient
                     output = output + ' - ';
-                    eq[ii].coefficient = eq[ii].coefficient * -1;
+                    co = co * -1;
                 }
             }
             terms = formatIds(eq[ii].idTop, eq[ii].idBot);
         
         // Format and append ids
-            if (eq[ii].coefficient === 1 && eq[ii].idTop.length) {
+            if (co === 1 && eq[ii].idTop.length) {
                 //console.log('1 and topid');
                 output = output + terms;
             }
-            if (eq[ii].coefficient !== 1 && (eq[ii].idTop.length || eq[ii].idBot.length)) {
+            if (co !== 1 && (eq[ii].idTop.length || eq[ii].idBot.length)) {
                 //console.log('!1 and top or bot id');
-                output = output + eq[ii].coefficient + terms;
+                output = output + co + terms;
             }
         } else {
             if (ii > 0) {
                 if (eq[ii].coefficient > 0) {
-                    last = last + ' + ' + eq[ii].coefficient;
+                    last = last + ' + ' + co;
                 } else {
                     // make this - and adjust coefficient
-                    last = last + ' - ' + (eq[ii].coefficient * -1);
+                    last = last + ' - ' + (co * -1);
                 }
             }
         }
@@ -288,56 +289,59 @@ function formatId(ids) {
 }
 
 function formatPolyMulti(eq) {
-    //console.log(eq);
+    console.log(eq);
     var ii, len, output = ['', '', ''], terms = [], glueSymb = '', glueLen = 0, co = '', last = '';
     len = eq.length;
     for (ii = 0; ii < len; ii = ii + 1) {
         //terms = formatIdsMulti(eq[ii].idTop, eq[ii].idBot);
+        co = eq[ii].coefficient;
         if (eq[ii].idTop.length || eq[ii].idBot.length) {
             terms[0] = formatId(eq[ii].idTop);
             terms[2] = formatId(eq[ii].idBot);
 
             // glue terms together with + and -
+            //console.log(eq[ii].coefficient);
             if (ii > 0) {
-                if (eq[ii].coefficient > 0) {
-                        glueSymb = ' + ';
+                if (co >= 0) {
+                    glueSymb = ' + ';
                 } else {
                     // make this - and adjust coefficient
-                    eq[ii].coefficient = eq[ii].coefficient * -1;
+                    co = co * -1;
                     glueSymb = ' - ';
                 }
                 glueLen = 3;
             }
+            //console.log(glueSymb);
 
-            if (eq[ii].coefficient === 1 && eq[ii].idTop.length) {
+            if (co === 1 && eq[ii].idTop.length) {
                 co = '';
             } else {
-                co = eq[ii].coefficient.toString(10);
+                co = co.toString(10);
             }
 
             // format  numbers and ids
             if (!eq[ii].idBot.length) {
                 // if top only
-                console.log(glueLen, co.length, longestLineLength(terms[0], ''));
+                //console.log(glueLen, co.length, longestLineLength(terms[0], ''));
                 output[0] = output[0] + pad(' ', glueLen + co.length + longestLineLength(terms[0], ''));
                 output[1] = output[1] + glueSymb + co + terms[0];
                 output[2] = output[2] + pad(' ', glueLen + co.length + longestLineLength(terms[0], ''));
             } else {
                 // all else
-                console.log(terms[2]);
+                //console.log(terms[2]);
                 terms[1] = pad('-', longestLineLength(co + terms[0], terms[2]));
                 output[0] = output[0] + pad(' ', glueLen) + pad(' ', terms[1].length, co + terms[0]);
                 output[1] = output[1] + glueSymb + terms[1];
-                console.log(terms[1].length, terms[2]);
+                //console.log(terms[1].length, terms[2]);
                 output[2] = output[2] + pad(' ', glueLen) + pad(' ', terms[1].length, terms[2]);
             }
         } else {
             if (ii > 0) {
-                if (eq[ii].coefficient > 0) {
-                    last = last + ' + ' + eq[ii].coefficient;
+                if (co > 0) {
+                    last = last + ' + ' + c0;
                 } else {
                     // make this - and adjust coefficient
-                    last = last + ' - ' + (eq[ii].coefficient * -1);
+                    last = last + ' - ' + (co * -1);
                 }
             }
         }
