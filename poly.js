@@ -1,8 +1,8 @@
+/*jslint regexp: true */
+
 function poly(polynomial) {
     'use strict';
-    /*jslint regexp: true */
-
-    var p;
+    var p, s;
 
     function isNumber(n) {
         return !isNaN(parseFloat(n)) && isFinite(n);
@@ -11,7 +11,7 @@ function poly(polynomial) {
     function pad(symb, amount, str) {
         var ii, len;
         str = str || '';
-        str = new String(str);
+        str = String(str);
 
         if (len < 1) {
             return '';
@@ -109,15 +109,16 @@ function poly(polynomial) {
         // Collapse extra spaces
         //eq = eq.replace(/\s+/g, " ");
 
+        s = eq;
         return eq;
     }
 
     function longestLength(line1, line2) {
         line1 = line1 || '';
-        line1 = new String(line1);
+        line1 = String(line1);
         line1 = line1.replace(/<[^<>]+>/g, '');
         line2 = line2 || '';
-        line2 = new String(line2);
+        line2 = String(line2);
         line2 = line2.replace(/<[^<>]+>/g, '');
 
         return (line1.length > line2.length) ? line1.length : line2.length;
@@ -213,12 +214,11 @@ function poly(polynomial) {
         }
         if (last > 0) {
             return output + ' + ' + last;
-        } else if (sortaEqual(last, 0)) {
-            return output;
-        } else {
-            // make this - and adjust coefficient
-            return output + ' - ' + (last * -1);
         }
+        if (sortaEqual(last, 0)) {
+            return output;
+        }
+        return output + ' - ' + (last * -1);
     }
 
     function formatPolyMulti(eq) {
@@ -399,16 +399,8 @@ function poly(polynomial) {
         return aNewEq;
     }
 
-    function expandExponent(co, exp) {
-        var ii, a = [];
-        for (ii = 0; ii < exp - 1; ii = ii + 1) {
-            a.push(co);
-        }
-        return a.join(' * ');
-    }
-
     function strictToPoly(eq) {
-        var aTerms, ii, len, aEq = [], aFactors, jj, jLen, fact, exp = 1;
+        var aTerms, ii, len, aEq = [], aFactors, jj, jLen, fact;
         // separate into terms
         aTerms = eq.split(' + ');
 
@@ -459,7 +451,7 @@ function poly(polynomial) {
             newPoly = combineTerms(consolidateTerms(strictToPoly(readableToStrict(newPoly))));
         }
         p = combineTerms(p.concat(newPoly)).sort(orderTerms);
-    }
+    };
 
     function foundIds(aId, id, val) {
         var ii, len, aIdTmp = [], aCoTmp = [];
@@ -475,7 +467,7 @@ function poly(polynomial) {
 
     this.substitute = function substitute(ids) {
         var ii, len, aEq = [], id, tmpNum = [], tmpDen = [];
-        
+
         if (!ids) {
             return formatPolyMulti(p);
         }
@@ -501,8 +493,11 @@ function poly(polynomial) {
             }
         }
         return formatPolyMulti(combineTerms(consolidateTerms(aEq)).sort(orderTerms));
-    }
+    };
 
-    this.strict = readableToStrict(polynomial);
-    p = combineTerms(consolidateTerms(strictToPoly(this.strict))).sort(orderTerms);
+    this.strict = function strict() {
+        return s;
+    };
+
+    p = combineTerms(consolidateTerms(strictToPoly(readableToStrict(polynomial)))).sort(orderTerms);
 }
