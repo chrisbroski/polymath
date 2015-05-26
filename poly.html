@@ -30,18 +30,18 @@ pre {background: #eee; padding: 10px; }
 <p>Type in polynomial terms using numbers, letters, and the +, -, *, and / operators only.
 <p><textarea id="eq">3y*y + 4x + 8 / 2 - 3</textarea>
 <h3>Strict Notation</h3>
-<p>Raw input is massaged into a more rigid syntax for easy parsing.
-<p><pre id="strict"></pre>
+<p>Raw input is massaged into a more rigid syntax for easy parsing. All indeterminates and coefficients are separated by a single space. Each term is separated with the + operator.
+<pre id="strict"></pre>
 <h3>Simplified</h3>
-<p>Terms with like indeterminates are combined, math is performed on numbers, indeterminates divided by themselves are removed, and terms are put in order.
+<p>Terms with like indeterminates are combined, math is performed on coefficients, indeterminates divided by themselves are removed, and terms are put in order.
 <p>Strict format
-<p><pre id="answer"></pre>
+<pre id="answer"></pre>
 <p>Readable Format
-<p><pre id="multiline"></pre>
+<pre id="multiline"></pre>
 <p>Add <input id="eqAdd" value="9f"> <button onclick="add()">Add term</button>
-<p><pre id="add"></pre>
+<pre id="add"></pre>
 <p>Substitute <input id="subTerm" value="{&quot;x&quot;: 5}"> <button onclick="sub()">Substitute</button>
-<p><pre id="evaluate"></pre>
+<pre id="evaluate"></pre>
 </article>
 
 <script src="poly.js"></script>
@@ -62,7 +62,7 @@ function add() {
 }
 
 function sub() {
-    var subWith = JSON.parse(document.getElementById('subTerm').value);
+    var subWith = document.getElementById('subTerm').value;
     document.getElementById('evaluate').innerHTML = eq.substitute(subWith);
 }
 
