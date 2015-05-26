@@ -97,10 +97,10 @@ function poly(polynomial) {
 
     function longestLength(line1, line2) {
         line1 = line1 || '';
-        line2 = line2 || '';
         line1 = new String(line1);
-        line2 = new String(line2);
         line1 = line1.replace(/<[^<>]+>/g, '');
+        line2 = line2 || '';
+        line2 = new String(line2);
         line2 = line2.replace(/<[^<>]+>/g, '');
 
         return (line1.length > line2.length) ? line1.length : line2.length;
@@ -216,7 +216,7 @@ function poly(polynomial) {
             if (eq[ii].idNum.length || eq[ii].idDen.length) {
                 degree = 1;
                 terms[0] = formatId(eq[ii].idNum)[0];
-                terms[2] = formatId(eq[ii].idDen)[1];
+                terms[2] = formatId(eq[ii].idDen)[0];
 
                 // glue terms together with + and -
                 if (ii > 0) {
