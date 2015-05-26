@@ -51,7 +51,7 @@ function simplify() {
     var reEq = /[^0-9a-zA-Z\s\+\-\/\*]/g;
     eq = new poly(document.getElementById('eq').value);
 
-    document.getElementById('strict').innerHTML = eq.strict;
+    document.getElementById('strict').innerHTML = eq.strict();
     document.getElementById('answer').innerHTML = eq.format();
     document.getElementById('multiline').innerHTML = eq.format(true);
 }
