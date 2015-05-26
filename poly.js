@@ -72,29 +72,42 @@ function poly(polynomial) {
     }
 
     function readableToStrict(eq) {
-        var reEq = /[^0-9a-zA-Z\s\+\-\/\*]/g;
+        var reEq = /[^0-9a-zA-Z\s\+\-\/\*\^]/g;
 
         if (eq.search(reEq) > -1) {
             throw new TypeError('letters, numbers, +, -, *, / only');
         }
-        // Pad spaces around * and / if needed
-        eq = eq.replace(/([\*\/\^])/g, ' $1 ');
+        // Pad spaces around *, /, + , -, then collapse to single space max
+        eq = eq.replace(/([\*\/\^\+\-])/g, ' $1 ');
+        eq = eq.replace(/\s+/g, " ");
+        eq = eq.replace(/ \- \- /g, ' + ');
 
         // Expand adjacent coefficient/identifier to explicit multiplication
         eq = eq.replace(/(\d)([a-zA-Z])/g, '$1 * $2');
+        eq = eq.replace(/([\*\+\-\/]*)(\S+?) \^ (\S+?)/g, function () {
+            var args = arguments, ii, len, a = [], joiner = ' * ', opLoc = 0;
+            len = +args[3];
+            for (ii = 0; ii < len; ii = ii + 1) {
+                a.push(args[2]);
+            }
+            opLoc = args[5].indexOf(args[0]) - 2;
+            if (args[5].slice(opLoc, opLoc + 1) === '/') {
+                joiner = ' / ';
+            }
+            return a.join(joiner);//args[2] + ' * ' + args[4];
+        });
 
         // make all terms + and transport negativity to a coefficient
-        // Is this necessary?
+        // Is this really a good idea?
         //console.log(eq.match(/^(?![a-zA-Z0-9])+\-(?=[a-zA-Z0-9])/g));
         //eq = eq.replace(/^(?![a-zA-Z0-9])+\-(?=[a-zA-Z0-9])/g, ' + -');
         //eq = eq.replace(/[a-zA-Z0-9\.](\-)[a-zA-Z0-9\.]/g, ' + -');
         eq = eq.replace(/( \- )(?=\d)/g, ' + -');
-        eq = eq.replace(/( \- \-)/g, ' + ');
 
         // Next: allow ^ for positive powers
 
         // Collapse extra spaces
-        eq = eq.replace(/\s+/g, " ");
+        //eq = eq.replace(/\s+/g, " ");
 
         return eq;
     }
@@ -111,7 +124,7 @@ function poly(polynomial) {
     }
 
     function formatId(ids, delimiter) {
-        var ii, len, out = '', oExp = {}, exp, first = true, newIds = [], degree = 0;
+        var ii, len, out = '', oExp = {}, exp, first = true, newIds = [];
         delimiter = delimiter || ' * ';
 
         // if there are multiple ids, user ^ notation
@@ -127,9 +140,6 @@ function poly(polynomial) {
 
         // remove any ids with a count > 1
         for (ii = 0; ii < len; ii = ii + 1) {
-            if (oExp[ids[ii]] > degree) {
-                degree = oExp[ids[ii]];
-            }
             if (oExp[ids[ii]] === 1) {
                 newIds.push(ids[ii]);
             }
@@ -155,7 +165,7 @@ function poly(polynomial) {
             out = out + newIds.join(delimiter);
         }
 
-        return [out, degree];
+        return out;
     }
 
     function formatPoly(eq) {
@@ -169,10 +179,13 @@ function poly(polynomial) {
             terms = '';
             if (eq[ii].idNum.length || eq[ii].idDen.length) {
                 if (eq[ii].idNum.length) {
-                    termsNum = ' * ' + eq[ii].idNum.join(' * ');
+                    if (!co) {
+                        termsNum = ' * ';
+                    }
+                    termsNum = termsNum + eq[ii].idNum.join(' * ');
                 }
                 if (eq[ii].idDen.length) {
-                    termsDen = ' / ' + eq[ii].idNum.join(' / ');
+                    termsDen = ' / ' + eq[ii].idDen.join(' / ');
                 }
                 terms = termsNum + termsDen;
             } else {
@@ -188,7 +201,7 @@ function poly(polynomial) {
                 }
             }
             if (terms) {
-                if (sortaEqual(co, 1)) {
+                if (sortaEqual(co, 1) && !termsDen) {
                     output = output + joiner + terms;
                 } else {
                     output = output + joiner + co + terms;
@@ -200,6 +213,8 @@ function poly(polynomial) {
         }
         if (last > 0) {
             return output + ' + ' + last;
+        } else if (sortaEqual(last, 0)) {
+            return output;
         } else {
             // make this - and adjust coefficient
             return output + ' - ' + (last * -1);
@@ -208,14 +223,13 @@ function poly(polynomial) {
 
     function formatPolyMulti(eq) {
         // Need to put the terms in the proper order
-        var ii, len, output = ['', '', ''], terms = [], glueSymb = '', glueLen = 0, co = '', last = '', lastCo = '', lastSign = ' + ', degree = 0;
+        var ii, len, output = ['', '', ''], terms = [], glueSymb = '', glueLen = 0, last = 0, co = 1;
         len = eq.length;
         for (ii = 0; ii < len; ii = ii + 1) {
             co = eq[ii].coef;
             if (eq[ii].idNum.length || eq[ii].idDen.length) {
-                degree = 1;
-                terms[0] = formatId(eq[ii].idNum)[0];
-                terms[2] = formatId(eq[ii].idDen)[0];
+                terms[0] = formatId(eq[ii].idNum);
+                terms[2] = formatId(eq[ii].idDen);
 
                 // glue terms together with + and -
                 if (ii > 0) {
@@ -249,15 +263,28 @@ function poly(polynomial) {
                     output[2] = output[2] + pad(' ', glueLen) + pad(' ', terms[1].length, terms[2]);
                 }
             } else {
-                if (co > 0) {
+                /*if (co > 0) {
                     last = last + ' + ' + co;
                 } else {
                     // make this - and adjust coefficient
                     last = last + ' - ' + (co * -1);
-                }
+                }*/
+                last = co;
             }
         }
-        output[1] = output[1] + last;
+        //output[1] = output[1] + last;
+        //return output.join("\n");
+
+        if (!output[0] && !output[1] && !output[2]) {
+            output[1] = last;
+        } else {
+            if (last > 0) {
+                output[1] = output[1] + ' + ' + last;
+            } else if (!sortaEqual(last, 0)) {
+                // make this - and adjust coefficient
+                output[1] = output[1] + ' - ' + (last * -1);
+            }
+        }
         return output.join("\n");
     }
 
@@ -342,8 +369,6 @@ function poly(polynomial) {
             }
         }
 
-        //console.log('combine terms');
-        //console.log(aZeroRemoved);
         return aZeroRemoved;
     }
 
@@ -355,14 +380,14 @@ function poly(polynomial) {
             aNewEq.push({'coef': 1, 'idNum': [], 'idDen': []});
 
             // Combine values
-            jLen = aEq[ii].digitNum.length;
+            jLen = aEq[ii].coNum.length;
             for (jj = 0; jj < jLen; jj = jj + 1) {
-                aNewEq[ii].coef = aNewEq[ii].coef * aEq[ii].digitNum[jj];
+                aNewEq[ii].coef = aNewEq[ii].coef * aEq[ii].coNum[jj];
             }
 
-            jLen = aEq[ii].digitDen.length;
+            jLen = aEq[ii].coDen.length;
             for (jj = 0; jj < jLen; jj = jj + 1) {
-                aNewEq[ii].coef = aNewEq[ii].coef / aEq[ii].digitDen[jj];
+                aNewEq[ii].coef = aNewEq[ii].coef / aEq[ii].coDen[jj];
             }
 
             // cancel ids that occur in top and bot arrays
@@ -371,29 +396,35 @@ function poly(polynomial) {
             aNewEq[ii].idDen = newUnits[1];
         }
 
-        //console.log('consolidate terms');
-        //console.log(aNewEq);
         return aNewEq;
     }
 
+    function expandExponent(co, exp) {
+        var ii, a = [];
+        for (ii = 0; ii < exp - 1; ii = ii + 1) {
+            a.push(co);
+        }
+        return a.join(' * ');
+    }
+
     function strictToPoly(eq) {
-        var aTerms, ii, len, aEq = [], aFactors, jj, jLen, fact;
+        var aTerms, ii, len, aEq = [], aFactors, jj, jLen, fact, exp = 1;
         // separate into terms
         aTerms = eq.split(' + ');
 
         len = aTerms.length;
         for (ii = 0; ii < len; ii = ii + 1) {
-            aEq.push({'digitNum': [], 'digitDen': [], 'idNum': [], 'idDen': []});
+            aEq.push({'coNum': [], 'coDen': [], 'idNum': [], 'idDen': []});
 
             // process factors
-            aFactors =  aTerms[ii].match(/(\/\s\S+)|(\* \S+)|(^\S+)/g);
+            aFactors =  aTerms[ii].match(/(\/\s\S+)|(\* \S+)|(\^ \S+)|(^\S+)/g);
             jLen = aFactors.length;
             for (jj = 0; jj < jLen; jj = jj + 1) {
                 fact = aFactors[jj];
                 if (fact.slice(0, 1) === '/') {
                     fact = fact.slice(2);
                     if (isNumber(fact)) {
-                        aEq[ii].digitDen.push(fact);
+                        aEq[ii].coDen.push(fact);
                     } else {
                         aEq[ii].idDen.push(fact);
                     }
@@ -402,21 +433,16 @@ function poly(polynomial) {
                         fact = aFactors[jj].slice(2);
                     }
                     if (isNumber(fact)) {
-                        aEq[ii].digitNum.push(fact);
+                        aEq[ii].coNum.push(fact);
                     } else {
                         aEq[ii].idNum.push(fact);
                     }
                 }
             }
         }
-        //console.log('strictToPoly');
-        //console.log(aEq);
+
         return aEq;
     }
-
-    this.strict = readableToStrict(polynomial);
-    p = combineTerms(consolidateTerms(strictToPoly(this.strict))).sort(orderTerms);
-    //console.log(p);
 
     this.format = function format(multiline) {
         if (multiline) {
@@ -430,41 +456,53 @@ function poly(polynomial) {
             return;
         }
         if (!Array.isArray(newPoly)) {
-            newPoly = combineTerms(consolidateTerms(strictToPoly(readableToStrict(newPoly)))).sort(orderTerms);
+            newPoly = combineTerms(consolidateTerms(strictToPoly(readableToStrict(newPoly))));
         }
-
         p = combineTerms(p.concat(newPoly)).sort(orderTerms);
     }
 
+    function foundIds(aId, id, val) {
+        var ii, len, aIdTmp = [], aCoTmp = [];
+        len = aId.length;
+        for (ii = 0; ii < len; ii = ii + 1) {
+            if (id === aId[ii]) {
+                aIdTmp.push(id);
+                aCoTmp.push(val);
+            }
+        }
+        return [aIdTmp, aCoTmp];
+    }
+
     this.substitute = function substitute(ids) {
-        var ii, len, jj, jLen, aEq = [], id;
+        var ii, len, aEq = [], id, tmpNum = [], tmpDen = [];
+        
+        if (!ids) {
+            return formatPolyMulti(p);
+        }
+        ids = JSON.parse(ids);
 
         // convert to full poly format
         len = p.length;
         for (ii = 0; ii < len; ii = ii + 1) {
-            aEq.push({'digitNum': [p[ii].coef], 'digitDen': [], 'idNum': p[ii].idNum, 'idDen': p[ii].idDen});
+            aEq.push({'coNum': [p[ii].coef], 'coDen': [], 'idNum': p[ii].idNum.slice(0), 'idDen': p[ii].idDen.slice(0)});
         }
+
         for (id in ids) {
             if (ids.hasOwnProperty(id)) {
                 for (ii = 0; ii < len; ii = ii + 1) {
-                    jLen = aEq[ii].idNum.length;
-                    for (jj = 0; jj < jLen; jj = jj + 1) {
-                        if (id === aEq[ii].idNum[jj]) {
-                            aEq[ii].idNum.splice(jj, 1);
-                            aEq[ii].digitNum.push(ids[id]);
-                        }
-                    }
-                    jLen = aEq[ii].idDen.length;
-                    for (jj = 0; jj < jLen; jj = jj + 1) {
-                        if (id === aEq[ii].idDen[jj]) {
-                            aEq[ii].idDen.splice(jj, 1);
-                            aEq[ii].digitDen.push(ids[id]);
-                        }
-                    }
+                    tmpNum = foundIds(aEq[ii].idNum, id, ids[id]);
+                    tmpDen = foundIds(aEq[ii].idDen, id, ids[id]);
+
+                    aEq[ii].idDen = aEq[ii].idDen.concat(tmpNum[0]);
+                    aEq[ii].coNum = aEq[ii].coNum.concat(tmpNum[1]);
+                    aEq[ii].idNum = aEq[ii].idNum.concat(tmpDen[0]);
+                    aEq[ii].coDen = aEq[ii].coDen.concat(tmpDen[1]);
                 }
             }
         }
-
-        return formatPolyMulti(combineTerms(consolidateTerms(aEq)));
+        return formatPolyMulti(combineTerms(consolidateTerms(aEq)).sort(orderTerms));
     }
+
+    this.strict = readableToStrict(polynomial);
+    p = combineTerms(consolidateTerms(strictToPoly(this.strict))).sort(orderTerms);
 }
