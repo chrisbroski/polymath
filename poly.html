@@ -20,42 +20,50 @@ sup {
     font-family: monospace; font-size: 14px;
 }
 #multiline {line-height: 80%; }
+pre {background: #eee; padding: 10px; }
 </style>
 
 <body>
 <article id="calculator">
 <h1>Polynomial Calculator</h1>
 <p><button onclick="simplify()">Calculate</button>
-<p>Type in polynomial terms using numbers, letters, and the +, -, *, and / operators only
+<p>Type in polynomial terms using numbers, letters, and the +, -, *, and / operators only.
 <p><textarea id="eq">3y*y + 4x + 8 / 2 - 3</textarea>
 <h3>Strict Notation</h3>
-<p>An effort is made to massage the input into a more rigid syntax for easy parsing.
-<p><textarea id="strict"></textarea>
-<p>Answer
+<p>Raw input is massaged into a more rigid syntax for easy parsing.
+<p><pre id="strict"></pre>
+<h3>Simplified</h3>
+<p>Terms with like indeterminates are combined, math is performed on numbers, indeterminates divided by themselves are removed, and terms are put in order.
+<p>Strict format
 <p><pre id="answer"></pre>
-<p>Multiline
+<p>Readable Format
 <p><pre id="multiline"></pre>
-<p>Add
-<p><textarea id="eqAdd">9f</textarea>
-<p>Result
+<p>Add <input id="eqAdd" value="9f"> <button onclick="add()">Add term</button>
 <p><pre id="add"></pre>
-<p>Substitute {x: 5}
+<p>Substitute <input id="subTerm" value="{&quot;x&quot;: 5}"> <button onclick="sub()">Substitute</button>
 <p><pre id="evaluate"></pre>
 </article>
 
 <script src="poly.js"></script>
 <script>
+var eq;
 function simplify() {
-    var reEq = /[^0-9a-zA-Z\s\+\-\/\*]/g,
-        eq = new poly(document.getElementById('eq').value);
+    var reEq = /[^0-9a-zA-Z\s\+\-\/\*]/g;
+    eq = new poly(document.getElementById('eq').value);
 
-    document.getElementById('strict').value = eq.strict;
+    document.getElementById('strict').innerHTML = eq.strict;
     document.getElementById('answer').innerHTML = eq.format();
     document.getElementById('multiline').innerHTML = eq.format(true);
-    
+}
+
+function add() {
     eq.add(document.getElementById('eqAdd').value);
     document.getElementById('add').innerHTML = eq.format(true);
-    document.getElementById('evaluate').innerHTML = eq.substitute({'x': 5});
+}
+
+function sub() {
+    var subWith = JSON.parse(document.getElementById('subTerm').value);
+    document.getElementById('evaluate').innerHTML = eq.substitute(subWith);
 }
 
 window.onload = simplify;
