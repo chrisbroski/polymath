@@ -25,16 +25,22 @@ sup {
 <body>
 <article id="calculator">
 <h1>Polynomial Calculator</h1>
-<p>Readable
-<p><textarea id="eq">2x + 3x - 3*4 / 6</textarea>
-<p>Strict
+<p><button onclick="simplify()">Calculate</button>
+<p>Type in polynomial terms using numbers, letters, and the +, -, *, and / operators only
+<p><textarea id="eq">3y*y + 4x + 8 / 2 - 3</textarea>
+<h3>Strict Notation</h3>
+<p>An effort is made to massage the input into a more rigid syntax for easy parsing.
 <p><textarea id="strict"></textarea>
-<p><button onclick="simplify()">Calc</button>
 <p>Answer
 <p><pre id="answer"></pre>
 <p>Multiline
 <p><pre id="multiline"></pre>
-
+<p>Add
+<p><textarea id="eqAdd">9f</textarea>
+<p>Result
+<p><pre id="add"></pre>
+<p>Substitute {x: 5}
+<p><pre id="evaluate"></pre>
 </article>
 
 <script src="poly.js"></script>
@@ -46,6 +52,10 @@ function simplify() {
     document.getElementById('strict').value = eq.strict;
     document.getElementById('answer').innerHTML = eq.format();
     document.getElementById('multiline').innerHTML = eq.format(true);
+    
+    eq.add(document.getElementById('eqAdd').value);
+    document.getElementById('add').innerHTML = eq.format(true);
+    document.getElementById('evaluate').innerHTML = eq.substitute({'x': 5});
 }
 
 window.onload = simplify;
