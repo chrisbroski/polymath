@@ -28,7 +28,7 @@ pre {background: #eee; padding: 10px; }
 <h1>Polynomial Calculator</h1>
 <p><button onclick="simplify()">Calculate</button>
 <p>Type in polynomial terms using numbers, letters, and the +, -, *, and / operators only.
-<p><textarea id="eq">3y*y + 4x + 8 / 2 - 3</textarea>
+<p><textarea id="eq">3y^2 + 4x + 8 / 2 - 3</textarea>
 <h3>Strict Notation</h3>
 <p>Raw input is massaged into a more rigid syntax for easy parsing. All indeterminates and coefficients are separated by a single space. Each term is separated with the + operator.
 <pre id="strict"></pre>
@@ -40,6 +40,8 @@ pre {background: #eee; padding: 10px; }
 <pre id="multiline"></pre>
 <p>Add <input id="eqAdd" value="9f"> <button onclick="add()">Add term</button>
 <pre id="add"></pre>
+<p>Multiply <input id="eqMult" value="x"> <button onclick="mult()">Multiply by</button>
+<pre id="mult"></pre>
 <p>Substitute <input id="subTerm" value="{&quot;x&quot;: 5}"> <button onclick="sub()">Substitute</button>
 <pre id="evaluate"></pre>
 </article>
@@ -59,6 +61,11 @@ function simplify() {
 function add() {
     eq.add(document.getElementById('eqAdd').value);
     document.getElementById('add').innerHTML = eq.format(true);
+}
+
+function mult() {
+    eq.multiply(document.getElementById('eqMult').value);
+    document.getElementById('mult').innerHTML = eq.format(true);
 }
 
 function sub() {
