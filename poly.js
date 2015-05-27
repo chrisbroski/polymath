@@ -452,6 +452,39 @@ function poly(polynomial) {
         }
         p = combineTerms(p.concat(newPoly)).sort(orderTerms);
     };
+    
+    function multiplyTerm(term) {
+        var ii, len, aEq = [];
+        len = p.length;
+        for (ii = 0; ii < len; ii = ii + 1) {
+            aEq.push({"coef": 0, "idNum": [], "idDen": []});
+            if (term.coef) {
+                aEq[ii].coef  = p[ii].coef * term.coef;
+            }
+            if (term.idNum.length) {
+                aEq[ii].idNum  = p[ii].idNum.concat(term.idNum);
+            }
+            if (term.idDen.length) {
+                aEq[ii].idDen  = p[ii].idDen.concat(term.idDen);
+            }
+        }
+        return aEq;
+    }
+
+    this.multiply = function multiply(newPoly) {
+        var ii, len;
+        if (!newPoly) {
+            return;
+        }
+        if (!Array.isArray(newPoly)) {
+            newPoly = combineTerms(consolidateTerms(strictToPoly(readableToStrict(newPoly))));
+        }
+        len = newPoly.length;
+        for (ii = 0; ii < len; ii = ii + 1) {
+            newPoly[ii] = multiplyTerm(newPoly[ii], p);
+        }
+        p = combineTerms(p.concat(newPoly)).sort(orderTerms);
+    };
 
     function foundIds(aId, id, val) {
         var ii, len, aIdTmp = [], aCoTmp = [];
