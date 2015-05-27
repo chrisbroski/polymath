@@ -443,7 +443,22 @@ function poly(polynomial) {
         return formatPoly(p);
     };
 
-    this.add = function add(newPoly) {
+    function add(poly1, poly2) {
+        var newPoly;
+        if (!poly1 || !poly2) {
+            return;
+        }
+        if (!Array.isArray(poly1)) {
+            poly1 = combineTerms(consolidateTerms(strictToPoly(readableToStrict(poly1))));
+        }
+        if (!Array.isArray(poly2)) {
+            poly2 = combineTerms(consolidateTerms(strictToPoly(readableToStrict(poly2))));
+        }
+        newPoly = poly1.concat(poly2);
+        return combineTerms(p.concat(newPoly)).sort(orderTerms);
+    }
+
+    this.add = function append(newPoly) {
         if (!newPoly) {
             return;
         }
@@ -452,27 +467,28 @@ function poly(polynomial) {
         }
         p = combineTerms(p.concat(newPoly)).sort(orderTerms);
     };
-    
-    function multiplyTerm(term) {
+
+    function multiplyTerm(term, poly) {
         var ii, len, aEq = [];
-        len = p.length;
+        len = poly.length;
         for (ii = 0; ii < len; ii = ii + 1) {
             aEq.push({"coef": 0, "idNum": [], "idDen": []});
             if (term.coef) {
-                aEq[ii].coef  = p[ii].coef * term.coef;
+                console.log(poly[ii].coef, term.coef, poly[ii].coef * term.coef);
+                aEq[ii].coef = poly[ii].coef * term.coef;
             }
             if (term.idNum.length) {
-                aEq[ii].idNum  = p[ii].idNum.concat(term.idNum);
+                aEq[ii].idNum  = poly[ii].idNum.concat(term.idNum);
             }
             if (term.idDen.length) {
-                aEq[ii].idDen  = p[ii].idDen.concat(term.idDen);
+                aEq[ii].idDen  = poly[ii].idDen.concat(term.idDen);
             }
         }
         return aEq;
     }
 
     this.multiply = function multiply(newPoly) {
-        var ii, len;
+        var ii, len, aEq = [];
         if (!newPoly) {
             return;
         }
@@ -481,9 +497,14 @@ function poly(polynomial) {
         }
         len = newPoly.length;
         for (ii = 0; ii < len; ii = ii + 1) {
-            newPoly[ii] = multiplyTerm(newPoly[ii], p);
+            if (aEq.length) {
+                aEq = add(aEq, multiplyTerm(newPoly[ii], p));
+            } else {
+                aEq = multiplyTerm(newPoly[ii], p);
+            }
+            //console.log(JSON.stringify(aEq));
         }
-        p = combineTerms(p.concat(newPoly)).sort(orderTerms);
+        p = combineTerms(aEq).sort(orderTerms);
     };
 
     function foundIds(aId, id, val) {
