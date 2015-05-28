@@ -112,6 +112,19 @@ function poly(polynomial) {
         s = eq;
         return eq;
     }
+    
+    function followsExp(str) {
+        if (!str) {
+            return true;
+        }
+        if (str.length < 12) {
+            return false;
+        }
+        if (str.slice(-6) === '</sup>') {
+            return true;
+        }
+        return false;
+    }
 
     function longestLength(line1, line2) {
         line1 = line1 || '';
@@ -124,9 +137,8 @@ function poly(polynomial) {
         return (line1.length > line2.length) ? line1.length : line2.length;
     }
 
-    function formatId(ids, delimiter) {
+    function formatId(ids) {
         var ii, len, out = '', oExp = {}, exp, first = true, newIds = [];
-        delimiter = delimiter || ' * ';
 
         // if there are multiple ids, user ^ notation
         len = ids.length;
@@ -146,24 +158,24 @@ function poly(polynomial) {
             }
         }
 
+        // Build term with exponent ids first
         for (exp in oExp) {
             if (oExp.hasOwnProperty(exp)) {
                 if (oExp[exp] > 1) {
-                    if (!first) {
-                        out = out + ' * ';
-                    } else {
-                        first = false;
-                    }
                     out = out + exp + '<sup>' + oExp[exp] + '</sup>';
                 }
             }
         }
 
-        if (ids.length) {
-            if (!first && newIds.length) {
-                out = out + delimiter;
+        // Append non-exponent ids
+        if (newIds.length) {
+            len = newIds.length;
+            for (ii = 0; ii < len; ii = ii + 1) {
+                if (!followsExp(out)) {
+                    out = out + ' * ';
+                }
+                out = out + newIds[ii];
             }
-            out = out + newIds.join(delimiter);
         }
 
         return out;
@@ -263,17 +275,9 @@ function poly(polynomial) {
                     output[2] = output[2] + pad(' ', glueLen) + pad(' ', terms[1].length, terms[2]);
                 }
             } else {
-                /*if (co > 0) {
-                    last = last + ' + ' + co;
-                } else {
-                    // make this - and adjust coefficient
-                    last = last + ' - ' + (co * -1);
-                }*/
                 last = co;
             }
         }
-        //output[1] = output[1] + last;
-        //return output.join("\n");
 
         if (!output[0] && !output[1] && !output[2]) {
             output[1] = last;
@@ -469,20 +473,14 @@ function poly(polynomial) {
     };
 
     function multiplyTerm(term, poly) {
+        console.log(term, poly);
         var ii, len, aEq = [];
         len = poly.length;
         for (ii = 0; ii < len; ii = ii + 1) {
             aEq.push({"coef": 0, "idNum": [], "idDen": []});
-            if (term.coef) {
-                console.log(poly[ii].coef, term.coef, poly[ii].coef * term.coef);
-                aEq[ii].coef = poly[ii].coef * term.coef;
-            }
-            if (term.idNum.length) {
-                aEq[ii].idNum  = poly[ii].idNum.concat(term.idNum);
-            }
-            if (term.idDen.length) {
-                aEq[ii].idDen  = poly[ii].idDen.concat(term.idDen);
-            }
+            aEq[ii].coef = poly[ii].coef * term.coef;
+            aEq[ii].idNum = poly[ii].idNum.concat(term.idNum);
+            aEq[ii].idDen = poly[ii].idDen.concat(term.idDen);
         }
         return aEq;
     }
@@ -502,7 +500,6 @@ function poly(polynomial) {
             } else {
                 aEq = multiplyTerm(newPoly[ii], p);
             }
-            //console.log(JSON.stringify(aEq));
         }
         p = combineTerms(aEq).sort(orderTerms);
     };
