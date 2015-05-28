@@ -112,7 +112,7 @@ function poly(polynomial) {
         s = eq;
         return eq;
     }
-    
+
     function followsExp(str) {
         if (!str) {
             return true;
@@ -138,7 +138,7 @@ function poly(polynomial) {
     }
 
     function formatId(ids) {
-        var ii, len, out = '', oExp = {}, exp, first = true, newIds = [];
+        var ii, len, out = '', oExp = {}, exp, newIds = [];
 
         // if there are multiple ids, user ^ notation
         len = ids.length;
@@ -192,7 +192,7 @@ function poly(polynomial) {
             terms = '';
             if (eq[ii].idNum.length || eq[ii].idDen.length) {
                 if (eq[ii].idNum.length) {
-                    if (!co) {
+                    if (co && co != 1) {
                         termsNum = ' * ';
                     }
                     termsNum = termsNum + eq[ii].idNum.join(' * ');
@@ -383,6 +383,12 @@ function poly(polynomial) {
         for (ii = 0; ii < len; ii = ii + 1) {
             aNewEq.push({'coef': 1, 'idNum': [], 'idDen': []});
 
+            // Convert from terse to full terms, if needed
+            if (!aEq[ii].coNum) {
+                aEq[ii].coNum = [aEq[ii].coef];
+                aEq[ii].coDen = [1];
+            }
+
             // Combine values
             jLen = aEq[ii].coNum.length;
             for (jj = 0; jj < jLen; jj = jj + 1) {
@@ -398,6 +404,11 @@ function poly(polynomial) {
             newUnits = cancelIds(aEq[ii]);
             aNewEq[ii].idNum = newUnits[0];
             aNewEq[ii].idDen = newUnits[1];
+
+            if (aEq[ii].coNum) {
+                delete aEq[ii].coNum;
+                delete aEq[ii].coDen;
+            }
         }
 
         return aNewEq;
@@ -473,11 +484,10 @@ function poly(polynomial) {
     };
 
     function multiplyTerm(term, poly) {
-        console.log(term, poly);
         var ii, len, aEq = [];
         len = poly.length;
         for (ii = 0; ii < len; ii = ii + 1) {
-            aEq.push({"coef": 0, "idNum": [], "idDen": []});
+            aEq.push({"coef": 1, "idNum": [], "idDen": []});
             aEq[ii].coef = poly[ii].coef * term.coef;
             aEq[ii].idNum = poly[ii].idNum.concat(term.idNum);
             aEq[ii].idDen = poly[ii].idDen.concat(term.idDen);
@@ -496,12 +506,12 @@ function poly(polynomial) {
         len = newPoly.length;
         for (ii = 0; ii < len; ii = ii + 1) {
             if (aEq.length) {
-                aEq = add(aEq, multiplyTerm(newPoly[ii], p));
+                aEq = aEq.concat(multiplyTerm(newPoly[ii], p));
             } else {
                 aEq = multiplyTerm(newPoly[ii], p);
             }
         }
-        p = combineTerms(aEq).sort(orderTerms);
+        p = combineTerms(consolidateTerms(aEq));
     };
 
     function foundIds(aId, id, val) {
