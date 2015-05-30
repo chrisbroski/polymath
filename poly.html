@@ -10,7 +10,7 @@ body {margin: 0 auto; max-width: 580px; }
 body > article > *:first-child {margin-top: 0; }
 article p {line-height: 1.4em; font-size: 17px; }
 
-textarea {width: 500px; height: 60px; padding: 10px; }
+#eq {width: 500px; padding: 10px; font-size: 14px; }
 #answer, #multiline {font-family: monospace; font-size: 14px; }
 sup {
     line-height: 0.5em;
@@ -28,7 +28,7 @@ pre {background: #eee; padding: 10px; }
 <h1>Polynomial Calculator</h1>
 <p><button onclick="simplify()">Calculate</button>
 <p>Type in polynomial terms using numbers, letters, and the +, -, *, and / operators only.
-<p><textarea id="eq">3y^2 + 4x + 8 / 2 - 3</textarea>
+<p><input id="eq" value="3y^2 + 4x + 8 / 2 - 3">
 <h3>Strict Notation</h3>
 <p>Raw input is massaged into a more rigid syntax for easy parsing. All indeterminates and coefficients are separated by a single space. Each term is separated with the + operator.
 <pre id="strict"></pre>

@@ -72,7 +72,7 @@ function poly(polynomial) {
     }
 
     function readableToStrict(eq) {
-        var reEq = /[^0-9a-zA-Z\s\+\-\/\*\^]/g;
+        var reEq = /[^0-9\.a-zA-Z\s\+\-\/\*\^]/g;
 
         if (eq.search(reEq) > -1) {
             throw new TypeError('letters, numbers, +, -, *, / only');
