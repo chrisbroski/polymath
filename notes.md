@@ -182,6 +182,7 @@ Return a random item from an array
 
     arrayA.rand(seed)
     > 4
+    arrayA.shuffle(seed);
 
 Array equality. ~ comparison will ignore order
 
