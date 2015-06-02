@@ -13,7 +13,7 @@ function poly(polynomial) {
         str = str || '';
         str = String(str);
 
-        if (len < 1) {
+        if (str.length < 1) {
             return '';
         }
 
@@ -32,8 +32,6 @@ function poly(polynomial) {
     }
 
     function arraysEqual(a, b) {
-        var ii, len;
-
         if (a === b) {
             return true;
         }
@@ -43,17 +41,7 @@ function poly(polynomial) {
         if (a.length !== b.length) {
             return false;
         }
-
-        a.sort();
-        b.sort();
-
-        len = a.length;
-        for (ii = 0; ii < len; ii = ii + 1) {
-            if (a[ii] !== b[ii]) {
-                return false;
-            }
-        }
-        return true;
+        return (!a.some(function (val, ii) {return b[ii] !== val; }));
     }
 
     function sortaEqual(a, b) {
@@ -96,28 +84,9 @@ function poly(polynomial) {
             }
             return a.join(joiner);//args[2] + ' * ' + args[4];
         });
-        
-        // expand coefficientless indeterminates as 1
-        eq = eq.replace(/[\+\-] \D+?/g, function () {
-            var args = arguments;
-            return args[0].slice(0, 2) + "1 * " + args[0].slice(2);
-        });
-        eq = eq.replace(/^\D+?/g, function () {
-            var args = arguments;
-            return "1 * " + args[0];
-        });
 
         // make all terms + and transport negativity to a coefficient
-        // Is this really a good idea?
-        //console.log(eq.match(/^(?![a-zA-Z0-9])+\-(?=[a-zA-Z0-9])/g));
-        //eq = eq.replace(/^(?![a-zA-Z0-9])+\-(?=[a-zA-Z0-9])/g, ' + -');
-        //eq = eq.replace(/[a-zA-Z0-9\.](\-)[a-zA-Z0-9\.]/g, ' + -');
         eq = eq.replace(/( \- )(?=\d)/g, ' + -');
-
-        // Next: allow ^ for positive powers
-
-        // Collapse extra spaces
-        //eq = eq.replace(/\s+/g, " ");
 
         sPoly = eq;
         return eq;
@@ -202,7 +171,7 @@ function poly(polynomial) {
             terms = '';
             if (eq[ii].idNum.length || eq[ii].idDen.length) {
                 if (eq[ii].idNum.length) {
-                    if (co && co != 1) {
+                    if (co && co !== 1) {
                         termsNum = ' * ';
                     }
                     termsNum = termsNum + eq[ii].idNum.join(' * ');
@@ -469,58 +438,47 @@ function poly(polynomial) {
         return formatPoly(oPoly);
     };
 
-    function add(poly1, poly2) {
-        var newPoly;
-        if (!poly1 || !poly2) {
-            return;
-        }
-        if (!Array.isArray(poly1)) {
-            poly1 = combineTerms(consolidateTerms(strictToPoly(readableToStrict(poly1))));
-        }
-        if (!Array.isArray(poly2)) {
-            poly2 = combineTerms(consolidateTerms(strictToPoly(readableToStrict(poly2))));
-        }
-        newPoly = poly1.concat(poly2);
-        return combineTerms(p.concat(newPoly)).sort(orderTerms);
-    }
-
-    this.add = function append(newPoly) {
+    function parse(newPoly) {
         if (!newPoly) {
-            return;
+            return [];
         }
         if (!Array.isArray(newPoly)) {
             newPoly = combineTerms(consolidateTerms(strictToPoly(readableToStrict(newPoly))));
         }
-        oPoly = combineTerms(oPoly.concat(newPoly)).sort(orderTerms);
+        return newPoly;
+    }
+
+    function add(poly1, poly2) {
+        var newPoly;
+        poly1 = parse(poly1);
+        poly2 = parse(poly2);
+        newPoly = poly1.concat(poly2);
+        return combineTerms(newPoly).sort(orderTerms);
+    }
+
+    this.add = function append(newPoly) {
+        oPoly = add(newPoly, oPoly);
     };
 
     function multiplyTerm(term, poly) {
-        var ii, len, aEq = [];
+        var ii, len, aNewPoly = [];
         len = poly.length;
         for (ii = 0; ii < len; ii = ii + 1) {
-            aEq.push({"coef": 1, "idNum": [], "idDen": []});
-            aEq[ii].coef = poly[ii].coef * term.coef;
-            aEq[ii].idNum = poly[ii].idNum.concat(term.idNum);
-            aEq[ii].idDen = poly[ii].idDen.concat(term.idDen);
+            aNewPoly.push({"coef": 1, "idNum": [], "idDen": []});
+            aNewPoly[ii].coef = poly[ii].coef * term.coef;
+            aNewPoly[ii].idNum = poly[ii].idNum.concat(term.idNum);
+            aNewPoly[ii].idDen = poly[ii].idDen.concat(term.idDen);
         }
-        return aEq;
+        return aNewPoly;
     }
 
     this.multiply = function multiply(newPoly) {
         var ii, len, aEq = [];
-        if (!newPoly) {
-            return;
-        }
-        if (!Array.isArray(newPoly)) {
-            newPoly = combineTerms(consolidateTerms(strictToPoly(readableToStrict(newPoly))));
-        }
+        newPoly = parse(newPoly);
+
         len = newPoly.length;
         for (ii = 0; ii < len; ii = ii + 1) {
-            //if (aEq.length) {
-                aEq = aEq.concat(multiplyTerm(newPoly[ii], oPoly));
-            //} else {
-            //    aEq = multiplyTerm(newPoly[ii], oPoly);
-            //}
+            aEq = aEq.concat(multiplyTerm(newPoly[ii], oPoly));
         }
         oPoly = combineTerms(consolidateTerms(aEq));
     };
@@ -558,6 +516,10 @@ function poly(polynomial) {
 
         for (id in ids) {
             if (ids.hasOwnProperty(id)) {
+                // should be able to replace polynomial value types
+                /*if (id typeof 'string') {
+                    id = id.parse;
+                }*/
                 for (ii = 0; ii < len; ii = ii + 1) {
                     tmpNum = foundIds(aEq[ii].idNum, id, ids[id]);
                     tmpDen = foundIds(aEq[ii].idDen, id, ids[id]);
@@ -572,6 +534,7 @@ function poly(polynomial) {
         return formatPolyMulti(combineTerms(consolidateTerms(aEq)).sort(orderTerms));
     };
 
+    // This seems to only be useful for demo/testing purposes
     this.strict = function strict() {
         return sPoly;
     };
