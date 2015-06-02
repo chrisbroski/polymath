@@ -138,14 +138,15 @@ Can combine < and >
 ####Random
 
     rand(seed)                returns random float between 0 and 1
-    randNormal(mean, stdev)   returns normal distribution random from the mean
+    randNormal(mean, stdev)   returns normal distribution random (default params 0, 1)
     array.rand(seed)          Technically an array method but worth mentioning
+    array.shuffle(seed)       Nobody should be reinventing this
 
 ###Loops
 
-Not sure yet. Probably go through an array, plus array creation syntax.
+Loops are not part of the application standard, but are methods of data structures. Most commonly looking like this.
 
-    for i, n in [1, 2, 3]
+    [1, 2, 3].for(i, n)
         total: total + n
 
 Iterators in for loops (1 and n in this example) are private to the block, but nothing else is.
@@ -182,6 +183,7 @@ Return a random item from an array
 
     arrayA.rand(seed)
     > 4
+    arrayA.shuffle(seed);
 
 Array equality. ~ comparison will ignore order
 

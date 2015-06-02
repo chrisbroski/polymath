@@ -30,8 +30,8 @@ pre {background: #eee; padding: 10px; }
 <p>Type in polynomial terms using numbers, letters, and the +, -, *, and / operators only.
 <p><input id="eq" value="3y^2 + 4x + 8 / 2 - 3">
 <h3>Strict Notation</h3>
-<p>Raw input is massaged into a more rigid syntax for easy parsing. All indeterminates and coefficients are separated by a single space. Each term is separated with the + operator.
-<pre id="strict"></pre>
+<p>Raw input is massaged into a more rigid syntax for easy parsing with regular expressions. All indeterminates and coefficients are separated by a single space. Each term is separated with the + operator. (Check JS console for processed string.)
+
 <h3>Simplified</h3>
 <p>Terms with like indeterminates are combined, math is performed on coefficients, indeterminates divided by themselves are removed, and terms are put in order.
 <p>Strict format
@@ -50,10 +50,9 @@ pre {background: #eee; padding: 10px; }
 <script>
 var eq;
 function simplify() {
-    var reEq = /[^0-9a-zA-Z\s\+\-\/\*]/g;
     eq = new poly(document.getElementById('eq').value);
 
-    document.getElementById('strict').innerHTML = eq.strict();
+    //document.getElementById('strict').innerHTML = eq.strict();
     document.getElementById('answer').innerHTML = eq.format();
     document.getElementById('multiline').innerHTML = eq.format(true);
 }
@@ -64,13 +63,13 @@ function add() {
 }
 
 function mult() {
-    eq.multiply(document.getElementById('eqMult').value);
-    document.getElementById('mult').innerHTML = eq.format(true);
+    //eq.multiply(document.getElementById('eqMult').value);
+    document.getElementById('mult').innerHTML = eq.multiply(document.getElementById('eqMult').value);
 }
 
 function sub() {
     var subWith = document.getElementById('subTerm').value;
-    document.getElementById('evaluate').innerHTML = eq.substitute(subWith);
+    document.getElementById('evaluate').innerHTML = eq.sub(subWith);
 }
 
 window.onload = simplify;

@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+<title>Polymath Console</title>
+<style type="text/css">
+#cons {
+    padding: 10px;
+    height: 300px; width: 50em;
+    border: 1px solid #888;
+    font-family: monospace;
+    overflow: auto; 
+}
+#cons > div {white-space: pre; white-space: pre-wrap; padding: 3px 0; }
+#cons > div span.cursorOn {border-right: 1px solid #000; }
+#cons > div .prompt {padding-right: 0.5em; }
+#cons > div.result span.prompt {padding-right: 0; }
+#cons > div.result {background: #dfd; padding: 3px; }
+#cons > div.error {background: #fdd; padding: 3px; }
+</style>
+
+<body>
+<div class="article">
+<h1>Polymath Console</h1>
+
+<div id="cons"><div><span class="prompt">&gt;</span><span></span><span></span></div>
+</div>
+
+</div>
+
+<script src="poly.js"></script>
+<script>
+var activeRow = 0, blinkerOn = true, cons = document.getElementById('cons'), blinkId, global = {};
+
+function getSpans(rowIndex) {
+    rowIndex = rowIndex || activeRow;
+    return cons.getElementsByTagName('div')[rowIndex].getElementsByTagName('span');
+}
+
+function makeRow(className) {
+    var row = document.createElement('div');
+    if (!className) {
+        row.className = 'entry';
+        row.innerHTML = '<span class="prompt">&gt;</span><span></span>';
+    } else {
+        row.className = 'result';
+        row.innerHTML = '<span class="prompt"></span><span></span>';
+    }
+    return row;
+}
+
+function addRow(className, content) {
+    var newRow = makeRow(className);
+
+    // Stop the blinking
+    window.clearTimeout(blinkId);
+    getSpans()[1].className = '';
+
+    newRow.className = className || '';
+
+    activeRow = activeRow + 1;
+    if (content) {
+        newRow.getElementsByTagName('span')[1].innerHTML = content;
+    }
+
+    cons.appendChild(newRow);
+    cursorBlink(true);
+    cons.scrollTop = cons.scrollHeight;
+}
+
+function parsePm() {
+    var code = getSpans()[1].innerHTML, id, method, param, util = new poly('1'), terms;
+
+    // I guess this is a place where you could error out if stuff is bad
+    if (code.search(/^[0-9]+[a-zA-Z0-9]+?\:/) > -1) {
+        addRow('error', 'Identifiers cannot start with a number');
+        addRow();
+        return;
+    }
+
+    // If it looks like and assignment statement, do that and return
+    if (code.search(/^[a-zA-Z]+[a-zA-Z0-9]+?\:/) > -1) {
+        // add to global object
+        id = code.slice(0, code.indexOf(':')).replace(/^\s+|\s+$/g, '');
+        global[id] = new poly(code.slice(code.indexOf(':') + 1));
+        addRow('result', global[id].format());
+        addRow();
+        return;
+    }
+
+    terms = util.clean(code).split(' ');
+    console.log('clean: ' + terms.join(' '));
+    // search 
+    /*
+    if (code.indexOf('.') > -1) {
+        id = code.slice(0, code.indexOf('.')).replace(/^\s+|\s+$/g, '');
+        method = code.slice(code.indexOf('.') + 1, code.indexOf('(')).replace(/^\s+|\s+$/g, '');
+        param = code.slice(code.indexOf('(') + 1, code.indexOf(')'));
+        //global
+        try {
+            addRow('result', global[id][method](param));
+        } catch(e) {
+            addRow('error', e);
+        }
+    }*/
+
+    try {
+        addRow('result', (new poly(code)).format());
+    } catch(e) {
+        addRow('error', e);
+    }
+    addRow();
+}
+
+function enter() {
+    parsePm();
+    //addRow();
+}
+
+function enterChar(e) {
+    var key, enterSpan;
+    // Prevent backspace from acting like the back button
+    if (e.keyCode === 8) {
+        e.preventDefault();
+        removeCharacter();
+        return;
+    }
+
+    key = e.key || String.fromCharCode(e.keyCode);
+    //console.log(key, e.keyCode);
+    enterSpan = cons.getElementsByTagName('div')[activeRow].getElementsByTagName('span')[1];
+
+    // Stop quick search in Firefox
+    if (e.key === '/') {
+        e.preventDefault();
+        enterSpan.innerHTML = enterSpan.innerHTML + '/';
+        return;
+    }
+
+    // tab
+    if (e.keyCode === 9) {
+        e.preventDefault();
+        enterSpan.innerHTML = enterSpan.innerHTML + '    ';
+        return;
+    }
+
+    // Calculate
+    if (e.keyCode === 13) {
+        enter();
+        return;
+    }
+
+    if ((e.keyCode >= 48 && e.keyCode <= 90) || (e.keyCode >= 96 && e.keyCode <= 111) || (e.keyCode >= 173 && e.keyCode <= 222) || e.keyCode === 32) {
+        enterSpan.innerHTML = enterSpan.innerHTML + key;
+    }
+}
+
+function removeCharacter() {
+    var spans = getSpans();
+
+    // If there is no number, or number is a result, exit.
+    if (!spans[1].innerHTML) {
+        return;
+    }
+
+    // Remove digit on the right
+    spans[1].innerHTML = spans[1].innerHTML.slice(0, -1);
+}
+
+function cursorBlink(resetBlink) {
+    var cursorSpan = cons.getElementsByTagName('div')[activeRow].getElementsByTagName('span')[1];
+
+    if (resetBlink || !blinkerOn) {
+        cursorSpan.className = 'cursorOn';
+        blinkerOn = true;
+    } else {
+        cursorSpan.className = '';
+        blinkerOn = false;
+    }
+    blinkId = window.setTimeout(cursorBlink, 600);
+}
+
+function main() {
+    document.body.addEventListener('keydown', enterChar);
+    cursorBlink(true);
+}
+
+window.onload = main;
+</script>

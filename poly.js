@@ -2,7 +2,7 @@
 
 function poly(polynomial) {
     'use strict';
-    var oPoly, sPoly;
+    var oPoly;
 
     function isNumber(n) {
         return !isNaN(parseFloat(n)) && isFinite(n);
@@ -12,10 +12,6 @@ function poly(polynomial) {
         var ii, len;
         str = str || '';
         str = String(str);
-
-        if (str.length < 1) {
-            return '';
-        }
 
         // strip HTML
         len = amount - str.replace(/<[^<>]+>/g, '').length;
@@ -28,6 +24,7 @@ function poly(polynomial) {
                 str = symb + str;
             }
         }
+
         return str;
     }
 
@@ -63,12 +60,17 @@ function poly(polynomial) {
         var reEq = /[^0-9\.a-zA-Z\s\+\-\/\*\^]/g;
 
         if (eq.search(reEq) > -1) {
-            throw new TypeError('letters, numbers, +, -, *, / only');
+            throw new TypeError('Letters, numbers, +, -, *, /, ^ only.');
+        }
+        if (eq.search(/\^\-/) > -1) {
+            throw new TypeError('Negative exponents not allowed.');
         }
         // Pad spaces around *, /, + , -, then collapse to single space max
         eq = eq.replace(/([\*\/\^\+\-])/g, ' $1 ');
         eq = eq.replace(/\s+/g, " ");
         eq = eq.replace(/ \- \- /g, ' + ');
+        // trim
+        eq = eq.replace(/^\s+|\s+$/g, '');
 
         // Expand adjacent coefficient/identifier to explicit multiplication
         eq = eq.replace(/(\d)([a-zA-Z])/g, '$1 * $2');
@@ -82,14 +84,19 @@ function poly(polynomial) {
             if (args[5].slice(opLoc, opLoc + 1) === '/') {
                 joiner = ' / ';
             }
-            return a.join(joiner);//args[2] + ' * ' + args[4];
+
+            return a.join(joiner);
         });
 
         // make all terms + and transport negativity to a coefficient
         eq = eq.replace(/( \- )(?=\d)/g, ' + -');
 
-        sPoly = eq;
+        console.log('strict: ' + eq);
         return eq;
+    }
+    
+    this.clean = function clean(inp) {
+        return readableToStrict(inp);
     }
 
     function followsExp(str) {
@@ -438,26 +445,27 @@ function poly(polynomial) {
         return formatPoly(oPoly);
     };
 
-    function parse(newPoly) {
+    function parseP(newPoly) {
         if (!newPoly) {
             return [];
         }
         if (!Array.isArray(newPoly)) {
-            newPoly = combineTerms(consolidateTerms(strictToPoly(readableToStrict(newPoly))));
+            newPoly = combineTerms(consolidateTerms(strictToPoly(readableToStrict(newPoly)))).sort(orderTerms);
         }
         return newPoly;
     }
 
     function add(poly1, poly2) {
         var newPoly;
-        poly1 = parse(poly1);
-        poly2 = parse(poly2);
+        poly1 = parseP(poly1);
+        poly2 = parseP(poly2);
         newPoly = poly1.concat(poly2);
         return combineTerms(newPoly).sort(orderTerms);
     }
 
     this.add = function append(newPoly) {
-        oPoly = add(newPoly, oPoly);
+        oPoly = add(parseP(newPoly), oPoly);
+        return formatPoly(oPoly);
     };
 
     function multiplyTerm(term, poly) {
@@ -474,13 +482,14 @@ function poly(polynomial) {
 
     this.multiply = function multiply(newPoly) {
         var ii, len, aEq = [];
-        newPoly = parse(newPoly);
+        newPoly = parseP(newPoly);
 
         len = newPoly.length;
         for (ii = 0; ii < len; ii = ii + 1) {
             aEq = aEq.concat(multiplyTerm(newPoly[ii], oPoly));
         }
         oPoly = combineTerms(consolidateTerms(aEq));
+        return formatPoly(oPoly);
     };
 
     function foundIds(aId, id, val) {
@@ -495,7 +504,7 @@ function poly(polynomial) {
         return [aIdTmp, aCoTmp];
     }
 
-    this.substitute = function substitute(ids) {
+    this.sub = function substitute(ids) {
         var ii, len, aEq = [], id, tmpNum = [], tmpDen = [];
 
         if (!ids) {
@@ -531,13 +540,9 @@ function poly(polynomial) {
                 }
             }
         }
-        return formatPolyMulti(combineTerms(consolidateTerms(aEq)).sort(orderTerms));
+        oPoly = combineTerms(consolidateTerms(aEq)).sort(orderTerms);
+        return formatPoly(oPoly);
     };
 
-    // This seems to only be useful for demo/testing purposes
-    this.strict = function strict() {
-        return sPoly;
-    };
-
-    oPoly = combineTerms(consolidateTerms(strictToPoly(readableToStrict(polynomial)))).sort(orderTerms);
+    oPoly = parseP(polynomial);
 }
