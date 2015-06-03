@@ -34,9 +34,9 @@ pre {background: #eee; padding: 10px; }
 
 <h3>Simplified</h3>
 <p>Terms with like indeterminates are combined, math is performed on coefficients, indeterminates divided by themselves are removed, and terms are put in order.
-<p>Strict format
+<p>Parseable format
 <pre id="answer"></pre>
-<p>Readable Format
+<p>Fancy Format
 <pre id="multiline"></pre>
 <p>Add <input id="eqAdd" value="9f"> <button onclick="add()">Add term</button>
 <pre id="add"></pre>
@@ -69,56 +69,8 @@ function mult() {
 
 function sub() {
     var subWith = document.getElementById('subTerm').value;
-    document.getElementById('evaluate').innerHTML = eq.sub(subWith);
+    document.getElementById('evaluate').innerHTML = eq.solve(subWith);
 }
 
 window.onload = simplify;
-/*
-Wow, this is fun and complex. Here are a few things I've learned so far.
-
-There should be 3 types of polynomial representation:
-
-    1. Human read and writeable
-    2. Rigid grammar (Single spaced between all numbers, operators and identifiers, no unary signs (+, -))
-    3. Object representation
-
-("Identifiers"? We need to call words something that can be both variables, constants, and units.)
-
-There can be steps to convert from human-formatted to rigid
-There is a parser to change rigid to object
-There could be a process to convert object directly to human readable
-
-You should be able to add, subtract, multiply and divide polynomial
-Multiply will be most common, You could have one like so (rigid syntax):
-
-Circumference: poly('r * cm * 3.1415')
-CmToIn: poly('in / 2.54cm')
-CircAndConvertCmToIn: Circumference * CmToIn
-    > r * in * 1.24 `valid polynomial`
-
-Calculate a polynomial by replacing variables with numbers
-CircAndConvertCmToIn.calc({r: 1.0})
-    > 1.24in `polynomial (because it includes an identifier) get the value with poly.calc({r: 1.0}).num`
-
-Wait, that's weird. Should the input be specified as cm? I mean, it doesn't have to be, it's just recommended.
-
-You could do the same like so:
-
-CircAndConvertCmToIn * poly('1.0 / r')
-
-Calculus
---------
-
-SalesTrajectory: p(2x + 3)
-SalesTrajectory.d()
-    > 2 `This is a polynomial`
-SalesTrajectory.d({x: 100})
-    > 2 `This is a number - It is 2 for all x, so, you know`
-
-SalesTrajectory.i()
-    > x^2 + 3x + C `polynomial`
-SalesTrajectory.i({x: [100, 110]})
-    > 2130 `number`
-
-*/
 </script>

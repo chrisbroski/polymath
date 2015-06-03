@@ -123,8 +123,9 @@ function poly(polynomial) {
         return (line1.length > line2.length) ? line1.length : line2.length;
     }
 
-    function formatId(ids) {
+    function formatId(ids, facSep, expSep) {
         var ii, len, out = '', oExp = {}, exp, newIds = [];
+        facSep = facSep || ' * ';
 
         // if there are multiple ids, user ^ notation
         len = ids.length;
@@ -148,7 +149,11 @@ function poly(polynomial) {
         for (exp in oExp) {
             if (oExp.hasOwnProperty(exp)) {
                 if (oExp[exp] > 1) {
-                    out = out + exp + '<sup>' + oExp[exp] + '</sup>';
+                    if (expSep) {
+                        out = out + exp + expSep + oExp[exp];
+                    } else {
+                        out = out + exp + '<sup>' + oExp[exp] + '</sup>';
+                    }
                 }
             }
         }
@@ -158,7 +163,7 @@ function poly(polynomial) {
             len = newIds.length;
             for (ii = 0; ii < len; ii = ii + 1) {
                 if (!followsExp(out)) {
-                    out = out + ' * ';
+                    out = out + facSep;
                 }
                 out = out + newIds[ii];
             }
@@ -166,58 +171,57 @@ function poly(polynomial) {
 
         return out;
     }
-
-    function formatPoly(eq) {
-        var ii, len, output = '', termsNum, termsDen, terms, last = 0, co = 1, joiner = '';
+    
+    function formatParseable(eq) {
+        var ii, len, output = '', terms = [], glueSymb = '', glueLen = 0, last = 0, co = 1;
         len = eq.length;
         for (ii = 0; ii < len; ii = ii + 1) {
-            // glue terms together with + and -
             co = eq[ii].coef;
-            termsNum = '';
-            termsDen = '';
-            terms = '';
             if (eq[ii].idNum.length || eq[ii].idDen.length) {
-                if (eq[ii].idNum.length) {
-                    if (co && co !== 1) {
-                        termsNum = ' * ';
+                terms[0] = formatId(eq[ii].idNum, ' * ', '^');
+                terms[1] = formatId(eq[ii].idDen, ' / ', '^');
+
+                // glue terms together with + and -
+                if (output) {
+                    if (co >= 0) {
+                        glueSymb = ' + ';
+                    } else {
+                        // make this - and adjust coefficient
+                        co = co * -1;
+                        glueSymb = ' - ';
                     }
-                    termsNum = termsNum + eq[ii].idNum.join(' * ');
+                    glueLen = 3;
                 }
-                if (eq[ii].idDen.length) {
-                    termsDen = ' / ' + eq[ii].idDen.join(' / ');
+
+                if (co === 1 && eq[ii].idNum.length) {
+                    co = '';
+                } else {
+                    co = co.toString(10);
                 }
-                terms = termsNum + termsDen;
+
+                // format  numbers and ids
+                output = output + glueSymb + co + terms[0];
+                if (eq[ii].idDen.length > 0) {
+                    output = output + ' / ' + terms[1];
+                } else if (eq[ii].idDen.length > 1) {
+                    output = output + ' /(' + terms[1] + ')';
+                }
             } else {
                 last = co;
-            }
-
-            if (output) {
-                if (co >= 0) {
-                    joiner = ' + ';
-                } else {
-                    joiner = ' - ';
-                    co = co * -1;
-                }
-            }
-            if (terms) {
-                if (sortaEqual(co, 1) && !termsDen) {
-                    output = output + joiner + terms;
-                } else {
-                    output = output + joiner + co + terms;
-                }
             }
         }
 
         if (!output) {
-            return last;
+            output = last;
+        } else {
+            if (last > 0) {
+                output = output + ' + ' + last;
+            } else if (!sortaEqual(last, 0)) {
+                // make this - and adjust coefficient
+                output = output + ' - ' + (last * -1);
+            }
         }
-        if (last > 0) {
-            return output + ' + ' + last;
-        }
-        if (sortaEqual(last, 0)) {
-            return output;
-        }
-        return output + ' - ' + (last * -1);
+        return output;
     }
 
     function formatPolyMulti(eq) {
@@ -442,7 +446,7 @@ function poly(polynomial) {
         if (multiline) {
             return formatPolyMulti(oPoly);
         }
-        return formatPoly(oPoly);
+        return formatParseable(oPoly);
     };
 
     function parseP(newPoly) {
@@ -465,7 +469,7 @@ function poly(polynomial) {
 
     this.add = function append(newPoly) {
         oPoly = add(parseP(newPoly), oPoly);
-        return formatPoly(oPoly);
+        return formatParseable(oPoly);
     };
 
     function multiplyTerm(term, poly) {
@@ -489,7 +493,7 @@ function poly(polynomial) {
             aEq = aEq.concat(multiplyTerm(newPoly[ii], oPoly));
         }
         oPoly = combineTerms(consolidateTerms(aEq));
-        return formatPoly(oPoly);
+        return formatParseable(oPoly);
     };
 
     function foundIds(aId, id, val) {
@@ -504,7 +508,7 @@ function poly(polynomial) {
         return [aIdTmp, aCoTmp];
     }
 
-    this.sub = function substitute(ids) {
+    this.solve = function solve(ids) {
         var ii, len, aEq = [], id, tmpNum = [], tmpDen = [];
 
         if (!ids) {
@@ -541,7 +545,7 @@ function poly(polynomial) {
             }
         }
         oPoly = combineTerms(consolidateTerms(aEq)).sort(orderTerms);
-        return formatPoly(oPoly);
+        return formatParseable(oPoly);
     };
 
     oPoly = parseP(polynomial);
