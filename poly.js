@@ -91,11 +91,12 @@ function poly(polynomial) {
 
         // make all terms + and transport negativity to a coefficient
         eq = eq.replace(/( \- )(?=\d)/g, ' + -');
+        eq = eq.replace(/^\- /g, '-');
 
         console.log('strict: ' + eq);
         return eq;
     }
-    
+
     this.clean = function clean(inp) {
         return readableToStrict(inp);
     }
@@ -506,6 +507,7 @@ function poly(polynomial) {
     this.subtract = function negateAndAdd(newPoly) {
         newPoly = parseP(newPoly);
         newPoly.multiply('-1');
+        console.log(newPoly);
         oPoly = add(parseP(newPoly), oPoly);
         this.polyString = formatParseable(oPoly);
         return formatParseable(oPoly);
