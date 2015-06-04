@@ -94,10 +94,12 @@ function isGlobalPoly(name) {
 
 function polyArray(terms) {
     var ii, len, tmpPoly = '', term, aPoly = [new poly('0'), '+'], hasPoly = false;
+    //console.log(terms);
 
     len = terms.length;
     for (ii = 0; ii < len; ii = ii + 1) {
         term = terms[ii];
+        //console.log(term);
         if (isOperator(term)) {
             tmpPoly = tmpPoly + ' ' + term + ' ';
             continue;
@@ -119,11 +121,15 @@ function polyArray(terms) {
 
             aPoly.push(global[term]);
         } else {
+            //console.log('no global');
             tmpPoly = tmpPoly + term;
         }
+        //console.log(tmpPoly);
     }
+    //console.log(aPoly);
 
     if (tmpPoly) {
+        console.log(tmpPoly);
         if (tmpPoly.length > 1 && isOperator(tmpPoly.slice(1, 2))) {
             aPoly.push(tmpPoly.slice(1, 2));
             try {
@@ -133,6 +139,8 @@ function polyArray(terms) {
                 return {"terms": [], "hasPoly": false};
             }
         } else {
+            console.log('no leading operator');
+            console.log(tmpPoly);
             try {
                 aPoly.push(new poly(tmpPoly));
             } catch(e) {
@@ -275,7 +283,6 @@ function enterChar(e) {
     }
 
     // last command
-    console.log(e.keyCode);
     if (e.keyCode === 38) {
         e.preventDefault();
         //console.log(cons.getElementsByTagName('div')[activeRow - 2].getElementsByTagName('span')[1].innerHTML);
