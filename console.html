@@ -91,6 +91,14 @@ function parsePm() {
 
     terms = util.clean(code).split(' ');
     console.log('clean: ' + terms.join(' '));
+    /*
+    for (id in global) {
+        if (global.hasOwnProperty(id)) {
+            if (terms.indexOf(id) > -1) {
+                //
+            }
+        }
+    }*/
     // search 
     /*
     if (code.indexOf('.') > -1) {
@@ -111,11 +119,6 @@ function parsePm() {
         addRow('error', e);
     }
     addRow();
-}
-
-function enter() {
-    parsePm();
-    //addRow();
 }
 
 function enterChar(e) {
@@ -147,7 +150,7 @@ function enterChar(e) {
 
     // Calculate
     if (e.keyCode === 13) {
-        enter();
+        parsePm();
         return;
     }
 
