@@ -69,8 +69,120 @@ function addRow(className, content) {
     cons.scrollTop = cons.scrollHeight;
 }
 
+function isOperator(term) {
+    //term = term.replace(/^\s+|\s+$/g, '');
+    return (term === '+' || term === '-' || term === '*' || term === '/');
+}
+
+function isGlobalPoly(name) {
+    var p;
+    if (!name) {
+        return false;
+    }
+    if (/^[0-9]/.test(name)) {
+        return false;
+    }
+    for (p in global) {
+        if (global.hasOwnProperty(p)) {
+            if (p === name) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+function polyArray(terms) {
+    var ii, len, tmpPoly = '', term, aPoly = [new poly('0'), '+'], hasPoly = false;
+
+    len = terms.length;
+    for (ii = 0; ii < len; ii = ii + 1) {
+        term = terms[ii];
+        if (isOperator(term)) {
+            tmpPoly = tmpPoly + ' ' + term + ' ';
+            continue;
+        }
+        if (isGlobalPoly(term)) {
+            hasPoly = true;
+            if (tmpPoly) {
+                if (tmpPoly.length > 3) {
+                    try {
+                        aPoly.push(new poly(tmpPoly.slice(0, -3)));
+                    } catch(e) {
+                        addRow('error', e);
+                        return {"terms": [], "hasPoly": false};
+                    }
+                }
+                aPoly.push(tmpPoly.slice(-2, -1));
+                tmpPoly = '';
+            }
+
+            aPoly.push(global[term]);
+        } else {
+            tmpPoly = tmpPoly + term;
+        }
+    }
+
+    if (tmpPoly) {
+        if (tmpPoly.length > 1 && isOperator(tmpPoly.slice(1, 2))) {
+            aPoly.push(tmpPoly.slice(1, 2));
+            try {
+                aPoly.push(new poly(tmpPoly.slice(2)));
+            } catch(e) {
+                addRow('error', e);
+                return {"terms": [], "hasPoly": false};
+            }
+        } else {
+            try {
+                aPoly.push(new poly(tmpPoly));
+            } catch(e) {
+                addRow('error', e);
+                return {"terms": [], "hasPoly": false};
+            }
+        }
+    }
+    return {"terms": aPoly, "hasPoly": hasPoly};
+}
+
+function calc(eq) {
+    var ii, len, oPoly;
+    len = eq.length;
+    if (len < 3) {
+        return '0';
+    }
+
+    oPoly = eq[0];
+    for (ii = 2; ii < len; ii = ii + 1) {
+        if (isOperator(eq[ii])) {
+            continue;
+        }
+        if (eq[ii - 1] === '+') {
+            console.log(oPoly.add(eq[ii]));
+        }
+        // should this be possible?
+        if (eq[ii - 1] === '-') {
+            oPoly = oPoly.subtract(eq[ii]);
+        }
+        if (eq[ii - 1] === '*') {
+            console.log(oPoly.multiply(eq[ii]));
+        }/*
+        if (eq[ii - 1] === '/') {
+            // need new method
+            oPoly = oPoly.divide(eq[ii]);
+        }*/
+    }
+
+    return oPoly.format();
+}
+
 function parsePm() {
-    var code = getSpans()[1].innerHTML, id, method, param, util = new poly('1'), terms;
+    var code = getSpans()[1].innerHTML,
+        id,
+        method,
+        param,
+        util = new poly('1'),
+        terms,
+        pPoly;
 
     // I guess this is a place where you could error out if stuff is bad
     if (code.search(/^[0-9]+[a-zA-Z0-9]+?\:/) > -1) {
@@ -80,43 +192,57 @@ function parsePm() {
     }
 
     // If it looks like and assignment statement, do that and return
-    if (code.search(/^[a-zA-Z]+[a-zA-Z0-9]+?\:/) > -1) {
+    if (code.search(/^[a-zA-Z]+[a-zA-Z0-9]*?\:/) > -1) {
+        //console.log('assignment', code.slice(code.indexOf(':') + 1));
         // add to global object
         id = code.slice(0, code.indexOf(':')).replace(/^\s+|\s+$/g, '');
-        global[id] = new poly(code.slice(code.indexOf(':') + 1));
+
+        // Make sure we are not trying to update a constant
+        if (code.slice(0, 1) === code.slice(0, 1).toUpperCase()) {
+            if (isGlobalPoly(id)) {
+                //throw new Error("Cannot change the value of a constant.");
+                addRow('error', 'Cannot change the value of a constant.');
+                addRow();
+                return;
+            }
+        }
+
+        try {
+            global[id] = new poly(code.slice(code.indexOf(':') + 1));
+        } catch(e) {
+            addRow('error', e);
+            addRow();
+            return;
+        }
         addRow('result', global[id].format());
         addRow();
         return;
     }
+    
+    try {
+        terms = util.clean(code).split(' ');
+    } catch(e) {
+        addRow('error', e);
+        addRow();
+        return;
+    }
 
-    terms = util.clean(code).split(' ');
-    console.log('clean: ' + terms.join(' '));
-    /*
-    for (id in global) {
-        if (global.hasOwnProperty(id)) {
-            if (terms.indexOf(id) > -1) {
-                //
-            }
-        }
-    }*/
-    // search 
-    /*
-    if (code.indexOf('.') > -1) {
-        id = code.slice(0, code.indexOf('.')).replace(/^\s+|\s+$/g, '');
-        method = code.slice(code.indexOf('.') + 1, code.indexOf('(')).replace(/^\s+|\s+$/g, '');
-        param = code.slice(code.indexOf('(') + 1, code.indexOf(')'));
-        //global
+    // console.log('clean: ' + terms.join(' '));
+    // Create new array with poly strings and operators
+    pPoly = polyArray(terms);
+
+    if (pPoly.hasPoly) {
         try {
-            addRow('result', global[id][method](param));
+            addRow('result', calc(pPoly.terms));
         } catch(e) {
             addRow('error', e);
         }
-    }*/
-
-    try {
-        addRow('result', (new poly(code)).format());
-    } catch(e) {
-        addRow('error', e);
+    } else {
+        try {
+            addRow('result', pPoly.terms[2].format());
+        } catch(e) {
+            addRow('error', e);
+        }
     }
     addRow();
 }
@@ -145,6 +271,17 @@ function enterChar(e) {
     if (e.keyCode === 9) {
         e.preventDefault();
         enterSpan.innerHTML = enterSpan.innerHTML + '    ';
+        return;
+    }
+
+    // last command
+    console.log(e.keyCode);
+    if (e.keyCode === 38) {
+        e.preventDefault();
+        //console.log(cons.getElementsByTagName('div')[activeRow - 2].getElementsByTagName('span')[1].innerHTML);
+        if (activeRow > 1) {
+            enterSpan.innerHTML = cons.getElementsByTagName('div')[activeRow - 2].getElementsByTagName('span')[1].innerHTML;
+        }
         return;
     }
 

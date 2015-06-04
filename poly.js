@@ -58,6 +58,7 @@ function poly(polynomial) {
 
     function readableToStrict(eq) {
         var reEq = /[^0-9\.a-zA-Z\s\+\-\/\*\^]/g;
+        eq = String(eq);
 
         if (eq.search(reEq) > -1) {
             throw new TypeError('Letters, numbers, +, -, *, /, ^ only.');
@@ -90,11 +91,12 @@ function poly(polynomial) {
 
         // make all terms + and transport negativity to a coefficient
         eq = eq.replace(/( \- )(?=\d)/g, ' + -');
+        eq = eq.replace(/^\- /g, '-');
 
         console.log('strict: ' + eq);
         return eq;
     }
-    
+
     this.clean = function clean(inp) {
         return readableToStrict(inp);
     }
@@ -454,7 +456,11 @@ function poly(polynomial) {
             return [];
         }
         if (!Array.isArray(newPoly)) {
-            newPoly = combineTerms(consolidateTerms(strictToPoly(readableToStrict(newPoly)))).sort(orderTerms);
+            if (newPoly.constructor.name === 'poly') {
+                newPoly = combineTerms(consolidateTerms(strictToPoly(readableToStrict(newPoly.polyString)))).sort(orderTerms);
+            } else {
+                newPoly = combineTerms(consolidateTerms(strictToPoly(readableToStrict(newPoly)))).sort(orderTerms);
+            }
         }
         return newPoly;
     }
@@ -469,6 +475,7 @@ function poly(polynomial) {
 
     this.add = function append(newPoly) {
         oPoly = add(parseP(newPoly), oPoly);
+        this.polyString = formatParseable(oPoly);
         return formatParseable(oPoly);
     };
 
@@ -493,6 +500,16 @@ function poly(polynomial) {
             aEq = aEq.concat(multiplyTerm(newPoly[ii], oPoly));
         }
         oPoly = combineTerms(consolidateTerms(aEq));
+        this.polyString = formatParseable(oPoly);
+        return formatParseable(oPoly);
+    };
+
+    this.subtract = function negateAndAdd(newPoly) {
+        newPoly = parseP(newPoly);
+        newPoly.multiply('-1');
+        console.log(newPoly);
+        oPoly = add(parseP(newPoly), oPoly);
+        this.polyString = formatParseable(oPoly);
         return formatParseable(oPoly);
     };
 
@@ -545,8 +562,11 @@ function poly(polynomial) {
             }
         }
         oPoly = combineTerms(consolidateTerms(aEq)).sort(orderTerms);
+        this.polyString = formatParseable(oPoly);
         return formatParseable(oPoly);
     };
 
     oPoly = parseP(polynomial);
+    // Just to make the object more readable in the console.
+    this.polyString = formatParseable(oPoly);
 }
