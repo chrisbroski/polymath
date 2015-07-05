@@ -255,8 +255,7 @@ function parsePm() {
     addRow();
 }
 
-function enterChar(e) {
-    var key, enterSpan;
+function preventStuff(e) {
     // Prevent backspace from acting like the back button
     if (e.keyCode === 8) {
         e.preventDefault();
@@ -264,27 +263,48 @@ function enterChar(e) {
         return;
     }
 
-    key = e.key || String.fromCharCode(e.keyCode);
-    //console.log(key, e.keyCode);
-    enterSpan = cons.getElementsByTagName('div')[activeRow].getElementsByTagName('span')[1];
-
     // Stop quick search in Firefox
     if (e.key === '/') {
         e.preventDefault();
-        enterSpan.innerHTML = enterSpan.innerHTML + '/';
         return;
     }
 
     // tab
     if (e.keyCode === 9) {
         e.preventDefault();
-        enterSpan.innerHTML = enterSpan.innerHTML + '    ';
         return;
     }
 
     // last command
     if (e.keyCode === 38) {
         e.preventDefault();
+        return;
+    }
+}
+
+function enterChar(e) {
+    var key, enterSpan;
+
+    //console.log(e);
+    key = e.key || String.fromCharCode(e.charCode);//String.fromCharCode(e.keyCode);
+    console.log(key, e.keyCode);
+    enterSpan = cons.getElementsByTagName('div')[activeRow].getElementsByTagName('span')[1];
+
+
+    // Stop quick search in Firefox
+    if (e.key === '/') {
+        enterSpan.innerHTML = enterSpan.innerHTML + '/';
+        return;
+    }
+
+    // tab
+    if (e.keyCode === 9) {
+        enterSpan.innerHTML = enterSpan.innerHTML + '    ';
+        return;
+    }
+    // last command
+    if (e.keyCode === 38) {
+        //e.preventDefault();
         //console.log(cons.getElementsByTagName('div')[activeRow - 2].getElementsByTagName('span')[1].innerHTML);
         if (activeRow > 1) {
             enterSpan.innerHTML = cons.getElementsByTagName('div')[activeRow - 2].getElementsByTagName('span')[1].innerHTML;
@@ -298,9 +318,10 @@ function enterChar(e) {
         return;
     }
 
-    if ((e.keyCode >= 48 && e.keyCode <= 90) || (e.keyCode >= 96 && e.keyCode <= 111) || (e.keyCode >= 173 && e.keyCode <= 222) || e.keyCode === 32) {
+    console.log(key);
+    //if ((e.keyCode >= 48 && e.keyCode <= 90) || (e.keyCode >= 96 && e.keyCode <= 111) || (e.keyCode >= 173 && e.keyCode <= 222) || e.keyCode === 32) {
         enterSpan.innerHTML = enterSpan.innerHTML + key;
-    }
+    //}
 }
 
 function removeCharacter() {
@@ -329,7 +350,8 @@ function cursorBlink(resetBlink) {
 }
 
 function main() {
-    document.body.addEventListener('keydown', enterChar);
+    document.body.addEventListener('keydown', preventStuff);
+    document.body.addEventListener('keypress', enterChar);
     cursorBlink(true);
 }
 
