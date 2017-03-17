@@ -123,18 +123,18 @@ If at all possible, symbols should be for one thing only. No doubling up of symb
     () Function parameters and nesting mathematics. Crap that's 2 things.
     _ 
     + Addition
-    ` -- Maybe comments?
+    ` Start and end of comments (multiline)
     - Subtraction
     = Comparison
-    [] List
-    {} Object
+    [] List (like JSON)
+    {} Object (like JSON)
     \ 
     |
     ; 
     ' start and end string literal
     : return
     " 
-    , separator for array and object elements
+    , separator for element in arrays and object
     . Numeric decimal
     / Division
     < Less than
@@ -148,3 +148,11 @@ I suppose >= and <= are OK though. To avoid overloading, logical operators will 
     not
 
 And bitwise operators will borrow from Erlang.
+
+    bnot - Unary bitwise not
+    band - Bitwise and
+    bor - Bitwise or
+    bxor - Arithmetic bitwise xor
+    bsl - Arithmetic bitshift left
+    bsr - Bitshift right
+
