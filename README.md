@@ -106,3 +106,45 @@ It is prefectly fine to perform math on strings. They are treated like mathemati
     8.12cm * pi
     > 25.5cm
 
+Symbols
+-------
+
+If at all possible, symbols should be for one thing only. No doubling up of symbols due to conflation of purpose, or drawing silly arrow and other emoji to create compound symbols.
+
+    ~ Almost equal to. Used to compare floating-point values with a precision. i.e. 5.000 ~3 5.001
+    ! 
+    @ 
+    # 
+    $ Indicator of money number type
+    % Shortcut for / 100
+    ^ To the power of
+    & 
+    * Multiply
+    () Function parameters and nesting mathematics. Crap that's 2 things.
+    _ 
+    + Addition
+    ` -- Maybe comments?
+    - Subtraction
+    = Comparison
+    [] List
+    {} Object
+    \ 
+    |
+    ; 
+    ' start and end string literal
+    : return
+    " 
+    , separator for array and object elements
+    . Numeric decimal
+    / Division
+    < Less than
+    > Greater than
+    ? 
+
+I suppose >= and <= are OK though. To avoid overloading, logical operators will use words.
+
+    and
+    or
+    not
+
+And bitwise operators will borrow from Erlang.
