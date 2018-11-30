@@ -21,6 +21,8 @@ Is this that important? I am finding that Daddy needs his sweet, sweet sugar. Th
 
 Static code analysis is a great tool, but it is also a list of the failings of a language. Can we write a syntax that makes common types of linter warnings irrelevant?
 
+Yes, by baking the linter into the complier: until the code is strictly formatted it will not compile.
+
 ### Reducing Verbosity
 
 Eliminate structural code. The code should say what it is trying to accomplish, not leak through how the compiler thinks. Short and abbreviated terms for the core operators are fine, as long as they are understandable (even to a beginner.)
@@ -36,29 +38,33 @@ There are way too many extra characters in most languages. The problem with that
 
 Using `=` for assignment has always been a terrible idea that is constantly repeated. Use a colon `:` instead. It's already in common use for assigning values to keys in objects.
 
-## Data Structures
+### Data Structures
 
 Python has 4 data structures: list, dictionary, tuple, and set. Ruby I think got this right by reducing it to 2: arrays and hashes. I don't like the term *hash*. It can be confused with the cryptographic type of hash. I think I am going to call these types *lists* (like Python) and *maps* (from "hash map").
 
 Arrays are going to be 1-based. I hate you too.
 
-## String Concatenation
+### String Concatenation
 
 This is a problem not only in overloading the `+` operator, but in writing messy code and optimization issues. Let's not allow it. Array joins and template syntax should be the only ways to create a string from parts. The best template syntax I have seen is *mustache*, though I think it could use some number formatting features. Template strings should be a core part of the system, and trivially usable from external files.
 
-## Files Are Objects
+### Files Are Objects
 
-My only *big* idea, inspired by Python's white space as code block delimiter is making the single way to define a importable object is with a separate file. These can be executed directly, imported as a library, or instantiated with a constructor. How to do this (and how to define public and private methods) I don't know yet.
+My only *big* idea, inspired by Python's white space as code block delimiter is making the single way to define an importable object a separate file. These can be executed directly, imported as a library, or instantiated with a constructor. How to do this (and how to define public and private methods) I don't know yet.
 
-## Conditionals and Bitwise Operators
+### Conditionals and Bitwise Operators
 
 You see logical and, or, and not as *and*, *or*, and *not*; *&*, *|*, and *!* and *&&*, *||*, and *!*. The reason for the doubling is the `&` and `|` or used in bitwise operators. I think Erlang got this right by using `band`, `bor`, and `bnot` for the bitwise operations so that the single characters could be reserved for (the arguably more commonly used) conditionals.
 
-## For / Next
+What about the ternary if? A lot of languages have this and as many recommend against it. What it didn't need to be explicitly created but was simply a side effect of other operators? That would allow it but ge tme off the hook for creating it. How about:
+
+    val: ['a', 'b'] item (1 < 2) as int
+
+### For / Next
 
 I don't see any purpose for this as long as there is a good iterable generator with an `each` method.
 
-## Scope
+### Scope
 
 How to define scope? This would be a simpler question if there were no block structures. I eliminated for/next, could I get rid of if/else and do/while? That'd be cool if I could.
 
@@ -81,21 +87,21 @@ Scope should be to the container.
 * Anything declared inside a container is not accessible from outside.
 * Variables can be changed in the parent scope only by using the `outscope` operator, otherwise it is treated as if it was declared in the container.
 
-## Immutability
+### Immutability
 
 I can't see why making everything a const by default would be bad. If you want a modifiable data container, declare it in ALL CAPS. I know it's the opposite of convention, but I think its a good enough idea to warrant it.
 
-## Asynchronous Programming
+### Asynchronous Programming
 
 Python doesn't do this. JavaScript is OK at it. Erlang is the master. Not sure what to do about this, but I'd bet money that event listening and the actor model have a place.
 
-## Block Delimiter
+### Block Delimiter
 
 Like Python, I think indentation should be used. However I don't think it should be an arbitrary amount. It should be tabs, and only tabs.
 
 In addition to just blocks, aren't function arguments blocks too? No, they are not, HOWEVER, built-ins like `each` and `reduce` should be. These are really core structural elements like `f`. I would say this is only if you are using a single function argument.
 
-### Do While
+#### Do While
 
 Would this work?
 
@@ -105,7 +111,7 @@ Would this work?
 
 So, how *while*, but has to have an explicit exit clause. Should this work with the *can* block? Not sure. More testing.
 
-### Switch Case
+#### Switch Case
 
 Use an object with function values
 
@@ -120,11 +126,11 @@ It's the default value that is not quite right. If I could figure that out, we c
 
 if(x < 10, f(x) = x + 1)
 
-### Could I User Indentation for Function Arguments Too?
+#### Could I User Indentation for Function Arguments Too?
 
 No, let's enforce a single map for all arguments.
 
-## String Delimiters
+### String Delimiters
 
 All strings are multi-line and escape their delimiters with 2 delimiter characters.
 
@@ -134,7 +140,7 @@ All strings are multi-line and escape their delimiters with 2 delimiter characte
 
 Let's stick with a single quote `'`. Escape it with double single-quotes `''`. All strings are multi-line.
 
-## Function Syntax
+### Function Syntax
 
 I've seen *function*, *fun*, *def*, and nothing. Would a simple *f* work? Maybe. Also, return syntax. I've seen *return*, setting the name of the function equal to a number, and simply returning the last value. As much as I like the simplicity of the 3rd approach, another way is required for early exiting functions, so now you need 2 ways and it's just a shortcut for whatever way that is. I am thinking about using `=`. Yes, I know now it's overloaded with conditionals, but using f() and = you could write something like this:
 
@@ -148,7 +154,7 @@ Also, forget special ways to name functions. I don't see the point of having two
 
 I think I am OK with parentheses as arguments. Everything uses that and probably for good reason. I don't like how you can execute a function in Ruby without the parens. I like to know when I am firing it off versus when I just want to pass it around.
 
-### Subroutines
+#### Subroutines
 
 Subroutines are just sloppy functions. It's simplest to say that functions are subs with these rules:
 
@@ -157,17 +163,17 @@ Subroutines are just sloppy functions. It's simplest to say that functions are s
 
 Because no outside values are allowed, functions use all names implicitly as its arg map keys.
 
-## Truth and Falsehood
+### Truth and Falsehood
 
 Do we need both and NULL and an undefined? I hope not, but I am not sure. More research is needed.
 
 I like truthy/falsy values, but like Python's, not JavaScript's. [] and {} should be false.
 
-## Strings
+### Strings
 
 Declaration: `myString: 'abcd'`
 
-### Methods
+#### Methods
 
 * myString.part(`start`, `end`) - Returns an inclusive part of an string between the start and end indicies. If *end* is not specified it defaults to the end of the string
 * myString.in(`value`) - Returns the index of the value (0 if not found)
@@ -175,15 +181,15 @@ Declaration: `myString: 'abcd'`
 * myString.split(`delimiter`) - returns a list split by the delimiter
 * myString.at(`index`) - Return value at index
 
-## Lists
+### Lists
 
 Yeah, like Python I am going to call *arrays* *lists*: a bunch of values arranged in a particular order. And they are going to be 1-based! Seriously, this 0-based stuff is such a bad habit.
 
-### Iterator Generation Syntax
+#### Iterator Generation Syntax
 
 Use *iterize* syntax developed by me https://github.com/chrisbroski/iterize
 
-### Declaration
+#### Declaration
 
 Make it just like JSON: `phyla: ['animal', 'plant', 'bacteria', 'fungus', 'protist']`
 
@@ -198,11 +204,11 @@ You can also use indentation and carriage return instead of a comma
 
 I will use the list named `aList` in the definitions and the `phyla` list in examples.
 
-### Methods
+#### Methods
 
 You can do lots of stuff...
 
-#### Methods That Return List
+##### Methods That Return List
 
 * aList.add(`value or another list`) - Returns a list with the arguments added to the end
 * aList.remove(`value or another list`) - Returns a list with the argument values removed
@@ -223,14 +229,14 @@ These are methods that work on regular lists but are intended to inherently deal
 * aList.intersect(`another list`) - Returns a list of items that exists in both arrays.
 * aList.diff(`another list`) - Return a list of all items that exist in one, but not the other.
 
-#### Methods That Return Nothing
+##### Methods That Return Nothing
 
 `each` is a block method who's argument map includes the keys *item* and *index*
 
     phyla.each
         out(`{{arg.item}}, {{arg.index}}`)
 
-#### Methods That Return Other Things
+##### Methods That Return Other Things
 
 * aList.in(`value`) - Returns the index of the value (0 if not found)
 * aList.length() - Returns the length (duh)
@@ -374,6 +380,25 @@ These are from Erlang.
 * `bsl` - Arithmetic bitshift left
 * `bsr` - Bitshift right
 
+Core Programming Paradigms
+==========================
+
+## Delimiting
+
+The complier needs to know when something starts and when it ends, wether it be a piece of data, a command, a statement, or a block of statements. The most common a space, a carriage return, a semi-colon, curly brackets (C-based languages love semi-colons and curly brackets,) square brackets, single and double quotes, and parentheses (Lisp inspired languages love these.)
+
+TODO: catalog the types of delimiting, research what has been used in different languages and examine the good and bad of it. What is the least amount of delimiters needed? Is it better to have as few as possible versus different characters for different types of delimiting?
+
+## Grammar
+
+A statement is the basic unit of code and is analogous to a linguistic sentence: `Subject -> verb -> object`
+
+## Blocks
+
+Blocks are containers of statements. They can contain other blocks. There needs to be rules about the interface of a block with other statements and blocks.
+
+Blocks are not just about organization. They are about modularity: keeping code in one block from interfering with code in another.
+
 Notes
 =====
 
@@ -439,3 +464,50 @@ Everything is either a container, an operator, a structure, or a datum.
 ## Research
 
 I should check out Scheme. Ugh, that could take time.
+
+I looked at racket. I was not impressed. Maybe Haskell is the way to go.
+
+## Key coding examples
+
+Fibonacci is always good. Some simple "Hello World" examples and some complex, multi-module ones too.
+
+### Fibonacci
+
+    fib: f(n)
+        if n = 0
+            : 0
+
+        if n = 1
+            : 1
+
+        : fib(n - 1) + fib(n - 2)
+
+    each item from [0...10]
+        out fib(item)
+
+## DOM
+
+Use what we've learned from jQuery to create the interface to an HTML doc.
+
+    el: doc '#css .query'
+
+What exactly have we learned from jQuery?
+
+* One selector that uses css selectors only (no `getElementById` and `getElementsByTagName`)
+* All methods should act on the output of an element selector should work on a collection the same as a single element
+* The selector can also be used as a creator if the argument is a hash instead of a string
+* Those verbose method names of the vanilla JS DOM aren't helpful at all
+
+### Methods of doc
+
+* text: return or replaces text body of element
+* append: added and el at the end of the parent element's content
+* on: attaches a listener
+* attr: gets and sets attributes
+* prop: adds and removes solitary properties
+* frag: creates a doc fragment
+* class.add
+* class.remove
+
+### Methods of win
+
