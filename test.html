@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+<title>Test WASM</title>
+<style type="text/css">
+
+</style>
+
+<body>
+<article>
+<h1>Test WASM</h1>
+
+</article>
+
+<script>
+WebAssembly.instantiateStreaming(fetch('test.wasm')).then(obj => {
+   console.log(obj.instance.exports.add(1, 2));  // "3"
+});
+</script>

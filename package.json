@@ -1,0 +1,22 @@
+{
+  "name": "polymath",
+  "version": "1.0.0",
+  "description": "Polymath\r ========",
+  "main": "wat2wasm.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chrisbroski/polymath.git"
+  },
+  "author": "Chris Broski",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/chrisbroski/polymath/issues"
+  },
+  "homepage": "https://github.com/chrisbroski/polymath#readme",
+  "dependencies": {
+    "wabt": "^1.0.8"
+  }
+}
