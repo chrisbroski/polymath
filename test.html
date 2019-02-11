@@ -5,17 +5,36 @@
 <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
 <title>Test WASM</title>
 <style type="text/css">
-
+input {
+    width: 2em;
+    text-align: right;
+}
 </style>
 
 <body>
 <article>
 <h1>Test WASM</h1>
-
+<p>
+    <input type="number" step="1" value="0" max="2147483647" min="−2147483648"> +
+    <input type="number" step="1" value="0" max="2147483647" min="−2147483648"> =
+    <span></span>
+<p><button onclick="calc()">calc</button></p>
 </article>
 
 <script>
+var importObject = {
+    document: {
+        querySelector: function (arg) {
+            document.querySelector(arg);
+        }
+    }
+};
 WebAssembly.instantiateStreaming(fetch('test.wasm')).then(obj => {
-   console.log(obj.instance.exports.add(1, 2));  // "3"
+    document.querySelector("button").onclick = function () {
+        var numbers = document.querySelectorAll('input[type="number"]');
+        var first = parseInt(numbers[0].value, 10);
+        var second = parseInt(numbers[1].value, 10);
+        document.querySelector("span").textContent = obj.instance.exports.add(first, second);
+    };
 });
 </script>
